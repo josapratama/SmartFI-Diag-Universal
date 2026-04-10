@@ -1,0 +1,22 @@
+{
+    "id": 1,
+    "name": "Honda Beat FI 2014",
+    "idle_rpm_range": [1400, 1700],
+    "tps_voltage_range": [0.45, 4.20],
+    "temp_idle_threshold": 70,
+    "mil_decoding_mode": "HONDA",
+    "startup_thresholds": {
+        "batt_crank_min": 10.5,
+        "crank_duration_max": 3000
+    },
+    "diagnosis_rules": {
+        "stall_rpm_tolerance": 200,
+        "idle_stability_variance": 50,
+        "tps_noise_threshold": 0.05
+    },
+    "notes": {
+        "starter_kasar": "Suspect ACG Starter relay or battery health",
+        "idle_hilang": "Check IACV, Throttle Body cleanliness, or TPS calibration",
+        "mati_saat_lepas_gas": "TPS calibration, idle screw adjustment, or low battery charging"
+    }
+}

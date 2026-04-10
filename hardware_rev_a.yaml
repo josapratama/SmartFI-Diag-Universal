@@ -1,0 +1,261 @@
+# ==============================================================================
+# PROJECT: ESP32 Smart FI Diagnostic Tool
+# FILE: hardware_rev_a.yaml
+# DESCRIPTION: Master Hardware Configuration (Source of Truth)
+# REVISION: A.1.0
+# AUTHOR: Principal Embedded Hardware Architect
+# ==============================================================================
+
+metadata:
+  project_name: "Smart FI Diagnostic Tool"
+  hardware_revision: "A.1.0"
+  board_name: "Diagnostic_Shield_V1"
+  mcu: "ESP32-WROOM-32"
+  supply_notes: "Requires stable 12V input from motorcycle battery. Buck converter handles 5V-15V range."
+  authoring_notes: "Initial prototype board with isolated digital inputs and filtered analog channels."
+
+power_system:
+  battery_input:
+    label: "VBAT_IN"
+    nominal_voltage: 12.6
+    fuse_rating_amps: 1.0
+    reverse_polarity_protection: "1N4007 Diode"
+    buck_converter: "LM2596 (12V to 5V)"
+    regulator: "AMS1117-3.3 (5V to 3.3V)"
+    transient_protection: "TVS Diode 18V"
+  monitoring:
+    channel_id: "CH_BATT"
+    warning_low: 11.5
+    critical_low: 10.5
+    warning_high: 14.8
+
+mcu_pin_map:
+  - gpio: 34
+    function: "Analog Input"
+    label: "ADC_BATT"
+    direction: "INPUT"
+    domain: "3.3V"
+    adc_channel: "ADC1_CH6"
+    status: "ACTIVE"
+  - gpio: 35
+    function: "Analog Input"
+    label: "ADC_TPS"
+    direction: "INPUT"
+    domain: "3.3V"
+    adc_channel: "ADC1_CH7"
+    status: "ACTIVE"
+  - gpio: 32
+    function: "Analog Input"
+    label: "ADC_TEMP"
+    direction: "INPUT"
+    domain: "3.3V"
+    adc_channel: "ADC1_CH4"
+    status: "ACTIVE"
+  - gpio: 25
+    function: "Digital Input"
+    label: "SIG_MIL"
+    direction: "INPUT"
+    domain: "Isolated"
+    status: "ACTIVE"
+  - gpio: 26
+    function: "Digital Input"
+    label: "SIG_STARTER"
+    direction: "INPUT"
+    domain: "Isolated"
+    status: "ACTIVE"
+  - gpio: 27
+    function: "Pulse Input"
+    label: "SIG_IGNITION"
+    direction: "INPUT"
+    domain: "Isolated"
+    status: "ACTIVE"
+  - gpio: 14
+    function: "Pulse Input"
+    label: "SIG_INJECTOR"
+    direction: "INPUT"
+    domain: "Isolated"
+    status: "ACTIVE"
+  - gpio: 13
+    function: "PWM Output"
+    label: "UI_BUZZER"
+    direction: "OUTPUT"
+    domain: "3.3V"
+    status: "ACTIVE"
+  - gpio: 21
+    function: "I2C SDA"
+    label: "I2C_SDA"
+    direction: "BIDIR"
+    domain: "3.3V"
+    status: "ACTIVE"
+  - gpio: 22
+    function: "I2C SCL"
+    label: "I2C_SCL"
+    direction: "BIDIR"
+    domain: "3.3V"
+    status: "ACTIVE"
+
+analog_channels:
+  - id: "CH_BATT"
+    name: "Battery Voltage Monitor"
+    source_signal: "Battery Main (+12V)"
+    esp32_pin: 34
+    divider_ratio: 0.180327 # 22k / (100k + 22k)
+    nominal_input_range: [0.0, 18.0]
+    protected_input_range: [0.0, 3.3]
+    filter:
+      type: "EMA"
+      alpha: 0.1
+      samples: 10
+    protection:
+      method: "Resistor Divider + Zener 3.3V"
+      rc_filter: "100k/100nF"
+    sampling:
+      rate_hz: 50
+      oversampling_bits: 2
+    conversion:
+      formula: "((raw_adc * 3.3 / 4095.0) / divider_ratio)"
+      units: "Volts"
+    software_binding:
+      related_features:
+        [
+          "battery_monitor",
+          "cranking_analyzer",
+          "charging_monitor",
+          "health_score",
+        ]
+      processing_pipeline: "voltage_smoothing"
+
+  - id: "CH_TPS"
+    name: "Throttle Position Sensor"
+    source_signal: "TPS Signal Pin (0-5V)"
+    esp32_pin: 35
+    divider_ratio: 0.3197 # 4.7k / (10k + 4.7k)
+    nominal_input_range: [0.0, 5.0]
+    protected_input_range: [0.0, 3.3]
+    filter:
+      type: "EMA"
+      alpha: 0.2
+    protection:
+      method: "Resistor Divider + Buffer"
+    sampling:
+      rate_hz: 100
+    conversion:
+      formula: "((raw_adc * 3.3 / 4095.0) / divider_ratio)"
+      units: "Volts"
+    software_binding:
+      related_features:
+        [
+          "tps_monitor",
+          "idle_analysis",
+          "throttle_recovery_test",
+          "symptom_diagnosis",
+        ]
+
+  - id: "CH_TEMP"
+    name: "Engine Temperature"
+    source_signal: "ECT/EOT Sensor (NTC)"
+    esp32_pin: 32
+    nominal_input_range: [-20, 150]
+    conversion:
+      formula: "steinhart_hart"
+      units: "Celsius"
+    software_binding:
+      related_features:
+        ["temperature_monitor", "cold_start_detect", "overheat_warning"]
+
+digital_channels:
+  - id: "CH_MIL"
+    name: "MIL Lamp Reader"
+    source_signal: "FI Lamp Wire (-12V Switched)"
+    esp32_pin: 25
+    interface_type: "Optocoupler PC817"
+    logic_polarity: "ACTIVE_LOW"
+    debounce_ms: 100
+    software_binding:
+      related_features: ["fi_reader", "blink_decoder", "dtc_history"]
+
+  - id: "CH_IGN"
+    name: "Ignition Pulse Reader"
+    source_signal: "Primary Coil Signal"
+    esp32_pin: 27
+    interface_type: "Optocoupler High-Speed"
+    edge_type: "FALLING"
+    pulse_expectation: "0.5ms - 5ms"
+    software_binding:
+      related_features: ["rpm_engine", "cranking_rpm", "stall_detector"]
+
+  - id: "CH_INJ"
+    name: "Injector Pulse Reader"
+    source_signal: "Injector Driver Line"
+    esp32_pin: 14
+    interface_type: "Optocoupler"
+    edge_type: "FALLING"
+    software_binding:
+      related_features:
+        ["injector_monitor", "idle_consistency", "advanced_diagnosis"]
+
+  - id: "CH_STR"
+    name: "Starter Signal Monitor"
+    source_signal: "Starter Button / Relay Coil"
+    esp32_pin: 26
+    interface_type: "Transistor Isolator"
+    logic_polarity: "ACTIVE_HIGH"
+    software_binding:
+      related_features: ["starter_event_detector", "cranking_analyzer"]
+
+ui_module:
+  display:
+    type: "SSD1306 OLED"
+    interface: "I2C"
+    address: "0x3C"
+    resolution: "128x64"
+    sda_pin: 21
+    scl_pin: 22
+  buttons:
+    - pin: 33
+      label: "UP"
+      pull: "UP"
+    - pin: 19
+      label: "DOWN"
+      pull: "UP"
+    - pin: 18
+      label: "SELECT"
+      pull: "UP"
+    - pin: 5
+      label: "BACK"
+      pull: "UP"
+  audio:
+    buzzer_pin: 13
+    type: "ACTIVE"
+
+storage_comm:
+  sd_card:
+    interface: "SPI"
+    cs_pin: 4
+    mosi_pin: 23
+    miso_pin: 19
+    sck_pin: 18
+  bluetooth:
+    enabled: true
+    dev_name: "SmartFI_Diag_V1"
+  wifi:
+    enabled: true
+    mode: "AP_ONLY"
+    ssid_prefix: "SmartFI_AP_"
+
+expansion:
+  k_line:
+    rx_pin: 16
+    tx_pin: 17
+    baud_rate: 10400
+  analog_header:
+    - label: "AUX_ADC_1"
+      gpio: 36
+    - label: "AUX_ADC_2"
+      gpio: 39
+
+protection_summary:
+  general_strategy: "Multilayer protection (Physical -> Electrical -> Digital)"
+  max_mcu_pin_voltage: 3.3
+  isolation_voltage_min: 1500 # Vrms for optos
+  noise_mitigation: "Ground plane separation, shielding, EMA filtering"

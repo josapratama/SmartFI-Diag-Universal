@@ -1,0 +1,11 @@
+{
+  "parent_profile": "yamaha_base",
+  "id": 2,
+  "name": "Yamaha Mio Z",
+  "family": "BlueCore Scooter",
+  "tier": 3,
+  "tps_voltage_range": [0.60, 3.80],
+  "brand_extra": {
+    "isc_control": true
+  }
+}

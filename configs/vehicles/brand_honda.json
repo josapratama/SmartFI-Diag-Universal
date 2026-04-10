@@ -1,0 +1,13 @@
+{
+  "id": 100,
+  "name": "Honda Brand Base",
+  "parent_profile": "base_profile",
+  "brand": "Honda",
+  "tier": 2,
+  "capabilities": {
+    "has_mil": true,
+    "has_ecu_protocol": true
+  },
+  "mil_decoding_mode": "HONDA_BLINK",
+  "temp_idle_threshold": 70
+}

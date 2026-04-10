@@ -1,0 +1,12 @@
+{
+  "id": 101,
+  "name": "Honda PGM-FI Scooter Family",
+  "parent_profile": "brands/honda",
+  "family": "Scooter",
+  "tier": 3,
+  "idle_rpm_range": [1400, 1700],
+  "capabilities": {
+    "has_tps": true,
+    "has_temp": true
+  }
+}
