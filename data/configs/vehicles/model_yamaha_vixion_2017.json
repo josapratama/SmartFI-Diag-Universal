@@ -1,0 +1,23 @@
+{
+  "id": 142,
+  "name": "Yamaha Vixion 150 2017",
+  "brand": "yamaha",
+  "family": "sport",
+  "model": "vixion_2017",
+  "parent_profile": "family_yamaha_sport",
+  "tier": 4,
+  "capabilities": { "has_ecu_protocol": true },
+  "thresholds": {
+    "rpm_idle": [1100, 1400],
+    "tps_v": [0.5, 4.5],
+    "temp_v_overheat": 3.5,
+    "batt_v_idle": [12.5, 14.5]
+  },
+  "startup_thresholds": { "batt_crank_min": 9.5, "crank_duration_max": 4500 },
+  "brand_extra": {
+    "engine_type": "150cc SOHC Liquid Cooled",
+    "liquid_cooled": true,
+    "ecu_baud_rate": 9600,
+    "protocol": "ISO_9141_YAMAHA"
+  }
+}

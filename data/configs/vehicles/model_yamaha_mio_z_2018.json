@@ -1,0 +1,63 @@
+{
+  "id": 111,
+  "name": "Yamaha Mio Z 2018",
+  "brand": "yamaha",
+  "family": "mio",
+  "model": "mio_z_2018",
+  "parent_profile": "family_yamaha_mio",
+  "tier": 4,
+  "capabilities": {
+    "has_ecu_protocol": true,
+    "has_injector_pulse": true,
+    "has_fuel_pump_monitor": true
+  },
+  "thresholds": {
+    "rpm_idle": [1350, 1550],
+    "tps_v": [0.5, 4.0],
+    "temp_v": [0.5, 3.9],
+    "temp_v_overheat": 3.6,
+    "batt_v_idle": [12.6, 14.4]
+  },
+  "mil_decoding_mode": "PULSE_COUNT",
+  "startup_thresholds": {
+    "batt_crank_min": 9.8,
+    "crank_duration_max": 4000
+  },
+  "brand_extra": {
+    "mil_pulse_gap_ms": 300,
+    "mil_sequence_gap_ms": 2500,
+    "ecu_init_address": "0x7A",
+    "ecu_baud_rate": 9600,
+    "protocol": "ISO_9141_YAMAHA",
+    "dtc_table": {
+      "12": "Crankshaft Position Sensor",
+      "14": "Intake Air Pressure Sensor",
+      "19": "ECT Sensor (Engine Coolant Temperature)",
+      "21": "Intake Air Temperature Sensor",
+      "22": "Intake Air Pressure Sensor (Low)",
+      "23": "Intake Air Temperature Sensor (High)",
+      "33": "Throttle Position Sensor",
+      "39": "Oxygen Sensor (Heated)",
+      "41": "Lean Malfunction",
+      "42": "Rich Malfunction",
+      "44": "PAIR Solenoid Valve",
+      "46": "Vehicle Speed Sensor",
+      "49": "FI System (ECU Internal)",
+      "51": "Throttle Position Sensor (Low)",
+      "52": "Throttle Position Sensor (High)",
+      "54": "Ignition Coil",
+      "55": "Lean Malfunction (Secondary)",
+      "56": "Rich Malfunction (Secondary)"
+    },
+    "live_params": [
+      "RPM",
+      "TPS",
+      "ECT",
+      "IAT",
+      "MAP",
+      "BATT",
+      "INJ_PW",
+      "IGN_ADV"
+    ]
+  }
+}

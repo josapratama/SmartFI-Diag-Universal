@@ -1,0 +1,36 @@
+{
+  "id": 311,
+  "name": "Kawasaki Ninja 250 FI 2018",
+  "brand": "kawasaki",
+  "family": "sport",
+  "model": "ninja_250_fi_2018",
+  "parent_profile": "base_kawasaki",
+  "tier": 4,
+  "capabilities": {
+    "has_tps": true,
+    "has_rpm": true,
+    "has_temp": true,
+    "has_mil": true,
+    "has_starter_signal": true,
+    "has_injector_pulse": true,
+    "has_ignition_pulse": true,
+    "has_ecu_protocol": true,
+    "has_battery_monitor": true,
+    "has_fuel_pump_monitor": true
+  },
+  "thresholds": {
+    "rpm_idle": [1100, 1400],
+    "tps_v": [0.5, 4.5],
+    "temp_v_overheat": 3.4,
+    "batt_v_idle": [12.5, 14.8]
+  },
+  "startup_thresholds": { "batt_crank_min": 9.5, "crank_duration_max": 4000 },
+  "brand_extra": {
+    "engine_type": "249cc Parallel Twin DOHC Liquid Cooled",
+    "liquid_cooled": true,
+    "twin_cylinder": true,
+    "slipper_clutch": true,
+    "ecu_baud_rate": 10400,
+    "protocol": "KAWASAKI_KDS_KWP2000"
+  }
+}

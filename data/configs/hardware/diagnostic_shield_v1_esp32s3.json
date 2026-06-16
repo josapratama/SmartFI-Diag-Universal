@@ -1,0 +1,143 @@
+{
+  "metadata": {
+    "project_name": "Smart FI Diagnostic Tool",
+    "hardware_revision": "A.2.0",
+    "board_name": "Diagnostic_Shield_V1_S3",
+    "mcu": "ESP32-S3-N16R8",
+    "notes": "Pin mapping untuk ESP32-S3 DevKitC-1 (N16R8). GPIO 25/26 tidak ada di S3, USB di 19/20."
+  },
+  "power_system": {
+    "battery_input": {
+      "nominal_voltage": 12.6,
+      "fuse_rating_amps": 1.0,
+      "reverse_polarity_protection": "1N4007 Diode",
+      "tvs_voltage": 18
+    },
+    "monitoring": {
+      "channel_id": "CH_BATT",
+      "warning_low": 11.5,
+      "critical_low": 10.5
+    }
+  },
+  "analog_channels": [
+    {
+      "id": "CH_BATT",
+      "esp32_pin": 1,
+      "divider_ratio": 0.180327,
+      "filter": { "type": "EMA", "alpha": 0.1 },
+      "conversion": { "formula": "x/0.180327", "units": "Volts" },
+      "software_binding": {
+        "related_features": [
+          "battery_monitor",
+          "cranking_analyzer",
+          "charging_monitor"
+        ]
+      }
+    },
+    {
+      "id": "CH_TPS",
+      "esp32_pin": 2,
+      "divider_ratio": 0.3197,
+      "filter": { "type": "EMA", "alpha": 0.2 },
+      "conversion": { "formula": "x/0.3197", "units": "Volts" },
+      "software_binding": {
+        "related_features": ["tps_monitor", "idle_analysis"]
+      }
+    },
+    {
+      "id": "CH_TEMP",
+      "esp32_pin": 3,
+      "divider_ratio": 0.3197,
+      "filter": { "type": "EMA", "alpha": 0.15 },
+      "conversion": { "formula": "x/0.3197", "units": "Volts" },
+      "software_binding": { "related_features": ["temp_monitor"] }
+    }
+  ],
+  "digital_channels": [
+    {
+      "id": "CH_MIL",
+      "esp32_pin": 4,
+      "logic_polarity": "ACTIVE_LOW",
+      "debounce_ms": 100,
+      "software_binding": {
+        "related_features": ["mil_reader", "blink_decoder"]
+      }
+    },
+    {
+      "id": "CH_STR",
+      "esp32_pin": 5,
+      "logic_polarity": "ACTIVE_LOW",
+      "debounce_ms": 50,
+      "software_binding": { "related_features": ["starter_analyzer"] }
+    },
+    {
+      "id": "CH_IGN",
+      "esp32_pin": 6,
+      "logic_polarity": "ACTIVE_LOW",
+      "debounce_ms": 0,
+      "software_binding": {
+        "related_features": ["rpm_monitor", "stall_detector"]
+      }
+    },
+    {
+      "id": "CH_INJ",
+      "esp32_pin": 7,
+      "logic_polarity": "ACTIVE_LOW",
+      "debounce_ms": 0,
+      "software_binding": { "related_features": ["injector_pulse"] }
+    },
+    {
+      "id": "CH_FUEL",
+      "esp32_pin": 15,
+      "logic_polarity": "ACTIVE_LOW",
+      "debounce_ms": 50,
+      "software_binding": { "related_features": ["fuel_pump_monitor"] }
+    }
+  ],
+  "ui_module": {
+    "display": {
+      "type": "SSD1306 OLED",
+      "resolution": "128x64",
+      "address": "0x3C",
+      "sda": 8,
+      "scl": 9
+    },
+    "buttons": [
+      { "pin": 10, "label": "UP" },
+      { "pin": 11, "label": "DOWN" },
+      { "pin": 12, "label": "SELECT" },
+      { "pin": 13, "label": "BACK" }
+    ],
+    "audio": { "buzzer_pin": 14 }
+  },
+  "communication": {
+    "kline": { "rx_pin": 16, "tx_pin": 17, "baud_default": 9600 },
+    "sd_card": { "cs_pin": 38, "spi_mosi": 35, "spi_miso": 37, "spi_sck": 36 }
+  },
+  "optional_modules": {
+    "gps": {
+      "enabled": false,
+      "rx_pin": 18,
+      "tx_pin": -1,
+      "baud": 9600,
+      "notes": "Set enabled=true jika GPS NEO-6M/7M terpasang di GPIO 18"
+    },
+    "canbus": {
+      "enabled": false,
+      "cs_pin": 42,
+      "speed": 500000,
+      "notes": "Set enabled=true jika MCP2515 CAN module terpasang di GPIO 42"
+    },
+    "relay": {
+      "enabled": false,
+      "pin_1": 40,
+      "pin_2": 41,
+      "notes": "Set enabled=true jika relay module terpasang di GPIO 40/41"
+    },
+    "o2_sensor": {
+      "enabled": false,
+      "adc_pin": 4,
+      "notes": "Set enabled=true jika O2 sensor terhubung ke ADC channel tambahan"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "id": 140,
+  "name": "Yamaha Sport Family",
+  "brand": "yamaha",
+  "family": "sport",
+  "parent_profile": "base_yamaha",
+  "tier": 3,
+  "capabilities": {
+    "has_ecu_protocol": true,
+    "has_injector_pulse": true,
+    "has_ignition_pulse": true
+  },
+  "thresholds": {
+    "rpm_idle": [1100, 1400],
+    "tps_v": [0.5, 4.5],
+    "temp_v_overheat": 3.5
+  },
+  "mil_decoding_mode": "PULSE_COUNT",
+  "brand_extra": {
+    "ecu_init_address": "0x7A",
+    "ecu_baud_rate": 9600,
+    "protocol": "ISO_9141_YAMAHA"
+  }
+}

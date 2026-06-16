@@ -1,0 +1,34 @@
+{
+  "id": 221,
+  "name": "Suzuki Satria F150 FI 2016",
+  "brand": "suzuki",
+  "family": "sport",
+  "model": "satria_f150_fi_2016",
+  "parent_profile": "base_suzuki",
+  "tier": 4,
+  "capabilities": {
+    "has_tps": true,
+    "has_rpm": true,
+    "has_temp": true,
+    "has_mil": true,
+    "has_starter_signal": true,
+    "has_injector_pulse": true,
+    "has_ignition_pulse": true,
+    "has_ecu_protocol": true,
+    "has_battery_monitor": true,
+    "has_fuel_pump_monitor": true
+  },
+  "thresholds": {
+    "rpm_idle": [1200, 1500],
+    "tps_v": [0.5, 4.5],
+    "temp_v_overheat": 3.5,
+    "batt_v_idle": [12.5, 14.8]
+  },
+  "startup_thresholds": { "batt_crank_min": 9.5, "crank_duration_max": 4000 },
+  "brand_extra": {
+    "engine_type": "150cc DOHC 4-valve Liquid Cooled",
+    "liquid_cooled": true,
+    "ecu_baud_rate": 10400,
+    "protocol": "SUZUKI_SDS_KWP2000"
+  }
+}

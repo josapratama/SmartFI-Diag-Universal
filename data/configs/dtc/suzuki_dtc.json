@@ -1,0 +1,111 @@
+{
+  "brand": "suzuki",
+  "version": "1.0",
+  "codes": [
+    {
+      "code": "C12",
+      "desc_id": "Crankshaft Position Sensor",
+      "fix": "Cek CKP sensor dan gap. Cek kabel.",
+      "severity": "high",
+      "component": "CKP"
+    },
+    {
+      "code": "C13",
+      "desc_id": "Intake Air Pressure Sensor",
+      "fix": "Cek MAP sensor dan vacuum hose.",
+      "severity": "medium",
+      "component": "MAP"
+    },
+    {
+      "code": "C14",
+      "desc_id": "Throttle Position Sensor",
+      "fix": "Kalibrasi TPS. Cek konektor.",
+      "severity": "high",
+      "component": "TPS"
+    },
+    {
+      "code": "C15",
+      "desc_id": "Engine Coolant Temp Sensor",
+      "fix": "Cek sensor ECT dan kabel.",
+      "severity": "medium",
+      "component": "ECT"
+    },
+    {
+      "code": "C21",
+      "desc_id": "Intake Air Temp Sensor",
+      "fix": "Cek sensor IAT di airbox.",
+      "severity": "low",
+      "component": "IAT"
+    },
+    {
+      "code": "C23",
+      "desc_id": "Tip Over Sensor",
+      "fix": "Tegakkan motor. Cek sensor kemiringan.",
+      "severity": "low",
+      "component": "TOS"
+    },
+    {
+      "code": "C24",
+      "desc_id": "ISC Valve",
+      "fix": "Bersihkan ISC valve. Cek konektor.",
+      "severity": "medium",
+      "component": "ISC"
+    },
+    {
+      "code": "C25",
+      "desc_id": "Fuel Injector",
+      "fix": "Cek resistansi injektor. Cek kabel.",
+      "severity": "high",
+      "component": "Injector"
+    },
+    {
+      "code": "C28",
+      "desc_id": "O2 Sensor",
+      "fix": "Cek sensor O2. Ganti jika sudah tua.",
+      "severity": "medium",
+      "component": "O2"
+    },
+    {
+      "code": "C29",
+      "desc_id": "Secondary Air System",
+      "fix": "Cek PAIR valve dan solenoid.",
+      "severity": "low",
+      "component": "PAIR"
+    },
+    {
+      "code": "C31",
+      "desc_id": "Ignition Coil",
+      "fix": "Cek coil dan kabel busi.",
+      "severity": "high",
+      "component": "Coil"
+    },
+    {
+      "code": "C32",
+      "desc_id": "Fuel Pump",
+      "fix": "Cek relay fuel pump. Cek tekanan.",
+      "severity": "high",
+      "component": "Fuel Pump"
+    },
+    {
+      "code": "C41",
+      "desc_id": "Lean Malfunction",
+      "fix": "Cek fuel delivery dan intake leak.",
+      "severity": "high",
+      "component": "Fuel"
+    },
+    {
+      "code": "C42",
+      "desc_id": "Rich Malfunction",
+      "fix": "Cek filter udara dan sensor O2.",
+      "severity": "medium",
+      "component": "Fuel"
+    },
+    {
+      "code": "C44",
+      "desc_id": "ECU Internal Error",
+      "fix": "Reset ECU. Jika tetap, ganti ECU.",
+      "severity": "critical",
+      "component": "ECU"
+    }
+  ]
+}

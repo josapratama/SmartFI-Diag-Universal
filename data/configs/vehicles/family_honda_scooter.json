@@ -1,0 +1,23 @@
+{
+  "id": 110,
+  "name": "Honda PGM-FI Scooter Family",
+  "brand": "honda",
+  "family": "scooter",
+  "parent_profile": "base_honda",
+  "tier": 3,
+  "capabilities": {
+    "has_ecu_protocol": true,
+    "has_injector_pulse": true
+  },
+  "thresholds": {
+    "rpm_idle": [1400, 1700],
+    "tps_v": [0.45, 4.2],
+    "temp_v_overheat": 3.7
+  },
+  "mil_decoding_mode": "PULSE_COUNT",
+  "brand_extra": {
+    "ecu_init_address": "0x68",
+    "ecu_baud_rate": 10400,
+    "protocol": "HONDA_KLINE_HDS"
+  }
+}

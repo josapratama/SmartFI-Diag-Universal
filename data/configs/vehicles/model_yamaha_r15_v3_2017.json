@@ -1,0 +1,25 @@
+{
+  "id": 141,
+  "name": "Yamaha R15 V3 2017",
+  "brand": "yamaha",
+  "family": "sport",
+  "model": "r15_v3_2017",
+  "parent_profile": "family_yamaha_sport",
+  "tier": 4,
+  "capabilities": { "has_ecu_protocol": true, "has_fuel_pump_monitor": true },
+  "thresholds": {
+    "rpm_idle": [1100, 1400],
+    "tps_v": [0.5, 4.5],
+    "temp_v_overheat": 3.4,
+    "batt_v_idle": [12.5, 14.8]
+  },
+  "startup_thresholds": { "batt_crank_min": 9.5, "crank_duration_max": 4000 },
+  "brand_extra": {
+    "engine_type": "155cc VVA SOHC Liquid Cooled",
+    "vva_equipped": true,
+    "liquid_cooled": true,
+    "slipper_clutch": true,
+    "ecu_baud_rate": 9600,
+    "protocol": "ISO_9141_YAMAHA"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": 115,
+  "name": "Honda Scoopy eSP 2017",
+  "brand": "honda",
+  "family": "scooter",
+  "model": "scoopy_2017",
+  "parent_profile": "family_honda_scooter",
+  "tier": 4,
+  "capabilities": { "has_ecu_protocol": true },
+  "thresholds": {
+    "rpm_idle": [1500, 1700],
+    "tps_v": [0.45, 4.2],
+    "temp_v_overheat": 3.6,
+    "batt_v_idle": [12.5, 14.5]
+  },
+  "startup_thresholds": { "batt_crank_min": 9.8, "crank_duration_max": 4000 },
+  "brand_extra": {
+    "chassis_code": "K93",
+    "engine_type": "eSP 110cc",
+    "acg_starter": true,
+    "iss_equipped": true,
+    "ecu_baud_rate": 10400,
+    "protocol": "HONDA_KLINE_HDS"
+  }
+}

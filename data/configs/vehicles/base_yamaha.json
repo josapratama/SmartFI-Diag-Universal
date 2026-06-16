@@ -1,0 +1,30 @@
+{
+  "id": 100,
+  "name": "Yamaha Base Profile",
+  "brand": "yamaha",
+  "tier": 2,
+  "capabilities": {
+    "has_tps": true,
+    "has_rpm": true,
+    "has_temp": true,
+    "has_mil": true,
+    "has_starter_signal": true,
+    "has_injector_pulse": true,
+    "has_ignition_pulse": false,
+    "has_ecu_protocol": false,
+    "has_battery_monitor": true,
+    "has_fuel_pump_monitor": false
+  },
+  "thresholds": {
+    "rpm_idle": [1300, 1600],
+    "tps_v": [0.45, 4.2],
+    "temp_v": [0.5, 4.0],
+    "temp_v_overheat": 3.8,
+    "batt_v_idle": [12.5, 14.5]
+  },
+  "mil_decoding_mode": "PULSE_COUNT",
+  "startup_thresholds": {
+    "batt_crank_min": 9.5,
+    "crank_duration_max": 5000
+  }
+}

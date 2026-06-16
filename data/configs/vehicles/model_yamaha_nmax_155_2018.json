@@ -1,0 +1,25 @@
+{
+  "id": 151,
+  "name": "Yamaha NMAX 155 2018",
+  "brand": "yamaha",
+  "family": "maxi",
+  "model": "nmax_155_2018",
+  "parent_profile": "family_yamaha_maxi",
+  "tier": 4,
+  "capabilities": { "has_ecu_protocol": true, "has_fuel_pump_monitor": true },
+  "thresholds": {
+    "rpm_idle": [1350, 1600],
+    "tps_v": [0.5, 4.2],
+    "temp_v_overheat": 3.5,
+    "batt_v_idle": [12.5, 14.5]
+  },
+  "startup_thresholds": { "batt_crank_min": 9.8, "crank_duration_max": 4000 },
+  "brand_extra": {
+    "engine_type": "155cc BlueCore VVA Liquid Cooled",
+    "vva_equipped": true,
+    "liquid_cooled": true,
+    "abs_equipped": true,
+    "ecu_baud_rate": 9600,
+    "protocol": "ISO_9141_YAMAHA"
+  }
+}

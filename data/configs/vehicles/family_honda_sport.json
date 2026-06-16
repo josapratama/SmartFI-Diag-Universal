@@ -1,0 +1,24 @@
+{
+  "id": 120,
+  "name": "Honda Sport/Naked Family",
+  "brand": "honda",
+  "family": "sport",
+  "parent_profile": "base_honda",
+  "tier": 3,
+  "capabilities": {
+    "has_ecu_protocol": true,
+    "has_injector_pulse": true,
+    "has_ignition_pulse": true
+  },
+  "thresholds": {
+    "rpm_idle": [1200, 1500],
+    "tps_v": [0.5, 4.5],
+    "temp_v_overheat": 3.5
+  },
+  "mil_decoding_mode": "PULSE_COUNT",
+  "brand_extra": {
+    "ecu_init_address": "0x68",
+    "ecu_baud_rate": 10400,
+    "protocol": "HONDA_KLINE_HDS"
+  }
+}

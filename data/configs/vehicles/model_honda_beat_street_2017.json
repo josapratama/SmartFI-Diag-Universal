@@ -1,0 +1,74 @@
+{
+  "id": 112,
+  "name": "Honda Beat Street 2017 (K81)",
+  "brand": "honda",
+  "family": "scooter",
+  "model": "beat_street_2017",
+  "parent_profile": "family_honda_scooter",
+  "tier": 4,
+  "capabilities": {
+    "has_tps": true,
+    "has_rpm": true,
+    "has_temp": true,
+    "has_mil": true,
+    "has_starter_signal": true,
+    "has_injector_pulse": true,
+    "has_ignition_pulse": true,
+    "has_ecu_protocol": true,
+    "has_battery_monitor": true,
+    "has_fuel_pump_monitor": true
+  },
+  "thresholds": {
+    "rpm_idle": [1500, 1700],
+    "tps_v": [0.45, 4.2],
+    "temp_v": [0.5, 3.9],
+    "temp_v_overheat": 3.6,
+    "batt_v_idle": [12.5, 14.5]
+  },
+  "mil_decoding_mode": "PULSE_COUNT",
+  "startup_thresholds": {
+    "batt_crank_min": 9.8,
+    "crank_duration_max": 3500
+  },
+  "brand_extra": {
+    "chassis_code": "K81",
+    "engine_type": "eSP 110cc",
+    "acg_starter": true,
+    "iss_equipped": true,
+    "ecu_init_address": "0x68",
+    "ecu_baud_rate": 10400,
+    "protocol": "HONDA_KLINE_HDS",
+    "mil_pulse_gap_ms": 250,
+    "mil_sequence_gap_ms": 2500,
+    "iss_notes": "ISS mematikan mesin otomatis saat idle >3 detik. Jika ISS aktif, RPM=0 bukan berarti stall.",
+    "dtc_table": {
+      "1": "ECM/PCM Internal Error",
+      "7": "CKP Sensor (Crankshaft Position)",
+      "8": "TDC Sensor (Top Dead Center)",
+      "12": "Injector Circuit Malfunction",
+      "13": "O2 Sensor Heater Circuit",
+      "21": "MAP Sensor (Manifold Absolute Pressure)",
+      "24": "O2 Sensor Signal",
+      "29": "IACV (Idle Air Control Valve)",
+      "33": "ECM EEPROM Error",
+      "41": "O2 Sensor Lean",
+      "42": "O2 Sensor Rich",
+      "48": "ISS (Idling Stop System) Error",
+      "54": "Bank Angle Sensor",
+      "61": "Vehicle Speed Sensor",
+      "71": "Cylinder Identification Sensor"
+    },
+    "live_params": [
+      "RPM",
+      "TPS",
+      "ECT",
+      "MAP",
+      "BATT",
+      "INJ_PW",
+      "IGN_ADV",
+      "O2",
+      "VSS",
+      "ISS_STATUS"
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": 150,
+  "name": "Yamaha Maxi Scooter Family",
+  "brand": "yamaha",
+  "family": "maxi",
+  "parent_profile": "base_yamaha",
+  "tier": 3,
+  "capabilities": {
+    "has_ecu_protocol": true,
+    "has_injector_pulse": true,
+    "has_fuel_pump_monitor": true
+  },
+  "thresholds": {
+    "rpm_idle": [1300, 1600],
+    "tps_v": [0.5, 4.2],
+    "temp_v_overheat": 3.5
+  },
+  "mil_decoding_mode": "PULSE_COUNT",
+  "brand_extra": {
+    "ecu_init_address": "0x7A",
+    "ecu_baud_rate": 9600,
+    "protocol": "ISO_9141_YAMAHA",
+    "vva_equipped": true
+  }
+}

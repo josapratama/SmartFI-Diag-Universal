@@ -1,0 +1,25 @@
+{
+  "id": 131,
+  "name": "Honda Supra X 125 FI",
+  "brand": "honda",
+  "family": "cub",
+  "model": "supra_x_125_fi",
+  "parent_profile": "family_honda_cub",
+  "tier": 4,
+  "capabilities": { "has_ecu_protocol": true },
+  "thresholds": {
+    "rpm_idle": [1300, 1600],
+    "tps_v": [0.45, 4.2],
+    "temp_v_overheat": 3.6,
+    "batt_v_idle": [12.5, 14.5]
+  },
+  "startup_thresholds": { "batt_crank_min": 9.5, "crank_duration_max": 4000 },
+  "brand_extra": {
+    "chassis_code": "JC72",
+    "engine_type": "125cc PGM-FI",
+    "acg_starter": false,
+    "iss_equipped": false,
+    "ecu_baud_rate": 10400,
+    "protocol": "HONDA_KLINE_HDS"
+  }
+}

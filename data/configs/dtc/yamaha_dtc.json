@@ -1,0 +1,150 @@
+{
+  "brand": "yamaha",
+  "version": "1.0",
+  "codes": [
+    {
+      "code": "12",
+      "desc_id": "Crankshaft Position Sensor",
+      "desc_en": "Crankshaft Position Sensor",
+      "fix": "Cek gap CKP sensor (0.5-1.5mm). Cek kabel dan konektor. Ganti jika rusak.",
+      "severity": "high",
+      "component": "CKP Sensor"
+    },
+    {
+      "code": "14",
+      "desc_id": "Sensor Tekanan Udara Intake",
+      "desc_en": "Intake Air Pressure Sensor",
+      "fix": "Cek vacuum hose ke MAP sensor. Cek konektor. Ganti sensor jika rusak.",
+      "severity": "medium",
+      "component": "MAP Sensor"
+    },
+    {
+      "code": "19",
+      "desc_id": "Sensor Suhu Mesin (ECT)",
+      "desc_en": "Engine Coolant Temperature Sensor",
+      "fix": "Cek konektor ECT. Ukur resistansi (2-3k ohm di suhu ruang). Ganti jika out of spec.",
+      "severity": "medium",
+      "component": "ECT Sensor"
+    },
+    {
+      "code": "21",
+      "desc_id": "Sensor Suhu Udara Intake",
+      "desc_en": "Intake Air Temperature Sensor",
+      "fix": "Cek konektor IAT di airbox. Bersihkan atau ganti sensor.",
+      "severity": "low",
+      "component": "IAT Sensor"
+    },
+    {
+      "code": "22",
+      "desc_id": "Tekanan Udara Intake Rendah",
+      "desc_en": "Intake Air Pressure Low",
+      "fix": "Cek kebocoran vacuum. Cek hose MAP sensor. Cek throttle body seal.",
+      "severity": "medium",
+      "component": "Intake System"
+    },
+    {
+      "code": "23",
+      "desc_id": "Suhu Udara Intake Tinggi",
+      "desc_en": "Intake Air Temperature High",
+      "fix": "Cek posisi sensor IAT. Pastikan tidak terkena panas mesin langsung.",
+      "severity": "medium",
+      "component": "IAT Sensor"
+    },
+    {
+      "code": "33",
+      "desc_id": "Throttle Position Sensor",
+      "desc_en": "Throttle Position Sensor",
+      "fix": "Kalibrasi TPS. Cek kabel signal (hijau). Ganti TPS jika voltage tidak linear.",
+      "severity": "high",
+      "component": "TPS"
+    },
+    {
+      "code": "39",
+      "desc_id": "Sensor O2 (Heated)",
+      "desc_en": "Heated Oxygen Sensor",
+      "fix": "Cek konektor O2 sensor. Cek heater circuit. Ganti sensor (umur ~60.000km).",
+      "severity": "medium",
+      "component": "O2 Sensor"
+    },
+    {
+      "code": "41",
+      "desc_id": "Campuran Terlalu Kurus (Lean)",
+      "desc_en": "Lean Malfunction",
+      "fix": "Cek tekanan fuel pump (3 bar). Cek injektor tersumbat. Cek kebocoran intake manifold.",
+      "severity": "high",
+      "component": "Fuel System"
+    },
+    {
+      "code": "42",
+      "desc_id": "Campuran Terlalu Kaya (Rich)",
+      "desc_en": "Rich Malfunction",
+      "fix": "Cek filter udara (kotor/basah). Cek sensor O2. Cek fuel pressure regulator.",
+      "severity": "medium",
+      "component": "Fuel System"
+    },
+    {
+      "code": "44",
+      "desc_id": "PAIR Solenoid Valve",
+      "desc_en": "PAIR Solenoid Valve",
+      "fix": "Cek solenoid PAIR. Cek vacuum hose. Biasanya tidak kritis untuk performa.",
+      "severity": "low",
+      "component": "Emission"
+    },
+    {
+      "code": "46",
+      "desc_id": "Sensor Kecepatan Kendaraan",
+      "desc_en": "Vehicle Speed Sensor",
+      "fix": "Cek gear driven speed sensor. Cek kabel. Cek speedometer.",
+      "severity": "low",
+      "component": "VSS"
+    },
+    {
+      "code": "49",
+      "desc_id": "Sistem FI / ECU Internal",
+      "desc_en": "FI System ECU Internal Error",
+      "fix": "Reset ECU (cabut aki 30 detik). Jika tetap muncul, kemungkinan ECU rusak.",
+      "severity": "critical",
+      "component": "ECU"
+    },
+    {
+      "code": "51",
+      "desc_id": "TPS Voltage Rendah (Short)",
+      "desc_en": "TPS Low Voltage",
+      "fix": "Cek kabel TPS apakah short ke ground. Cek konektor. Ukur voltage output.",
+      "severity": "high",
+      "component": "TPS"
+    },
+    {
+      "code": "52",
+      "desc_id": "TPS Voltage Tinggi (Open)",
+      "desc_en": "TPS High Voltage",
+      "fix": "Cek kabel TPS apakah putus (open circuit). Cek konektor longgar.",
+      "severity": "high",
+      "component": "TPS"
+    },
+    {
+      "code": "54",
+      "desc_id": "Ignition Coil",
+      "desc_en": "Ignition Coil Malfunction",
+      "fix": "Cek coil primer/sekunder resistance. Cek kabel busi. Ganti coil jika short.",
+      "severity": "high",
+      "component": "Ignition Coil"
+    },
+    {
+      "code": "55",
+      "desc_id": "Lean Malfunction (Secondary)",
+      "desc_en": "Lean Malfunction Secondary",
+      "fix": "Sama dengan kode 41. Cek fuel delivery dan intake leak.",
+      "severity": "high",
+      "component": "Fuel System"
+    },
+    {
+      "code": "56",
+      "desc_id": "Rich Malfunction (Secondary)",
+      "desc_en": "Rich Malfunction Secondary",
+      "fix": "Sama dengan kode 42. Cek air filter dan fuel pressure.",
+      "severity": "medium",
+      "component": "Fuel System"
+    }
+  ]
+}

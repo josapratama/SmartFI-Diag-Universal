@@ -1,0 +1,26 @@
+{
+  "id": 116,
+  "name": "Honda PCX 150 2018",
+  "brand": "honda",
+  "family": "scooter",
+  "model": "pcx_150_2018",
+  "parent_profile": "family_honda_scooter",
+  "tier": 4,
+  "capabilities": { "has_ecu_protocol": true, "has_fuel_pump_monitor": true },
+  "thresholds": {
+    "rpm_idle": [1500, 1800],
+    "tps_v": [0.5, 4.3],
+    "temp_v_overheat": 3.5,
+    "batt_v_idle": [12.5, 14.8]
+  },
+  "startup_thresholds": { "batt_crank_min": 9.8, "crank_duration_max": 3500 },
+  "brand_extra": {
+    "chassis_code": "K97",
+    "engine_type": "eSP 150cc 4-valve",
+    "acg_starter": true,
+    "iss_equipped": true,
+    "abs_equipped": true,
+    "ecu_baud_rate": 10400,
+    "protocol": "HONDA_KLINE_HDS"
+  }
+}

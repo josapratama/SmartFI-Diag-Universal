@@ -1,0 +1,22 @@
+{
+  "id": 112,
+  "name": "Yamaha Xeon GT 125",
+  "brand": "yamaha",
+  "family": "mio",
+  "model": "xeon_gt125",
+  "parent_profile": "family_yamaha_mio",
+  "tier": 3,
+  "capabilities": { "has_ecu_protocol": true },
+  "thresholds": {
+    "rpm_idle": [1400, 1650],
+    "tps_v": [0.5, 4.0],
+    "temp_v_overheat": 3.7,
+    "batt_v_idle": [12.5, 14.5]
+  },
+  "startup_thresholds": { "batt_crank_min": 9.5, "crank_duration_max": 5000 },
+  "brand_extra": {
+    "engine_type": "125cc BlueCore",
+    "ecu_baud_rate": 9600,
+    "protocol": "ISO_9141_YAMAHA"
+  }
+}

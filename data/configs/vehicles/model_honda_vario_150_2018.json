@@ -1,0 +1,25 @@
+{
+  "id": 114,
+  "name": "Honda Vario 150 eSP 2018",
+  "brand": "honda",
+  "family": "scooter",
+  "model": "vario_150_2018",
+  "parent_profile": "family_honda_scooter",
+  "tier": 4,
+  "capabilities": { "has_ecu_protocol": true, "has_fuel_pump_monitor": true },
+  "thresholds": {
+    "rpm_idle": [1500, 1750],
+    "tps_v": [0.45, 4.2],
+    "temp_v_overheat": 3.5,
+    "batt_v_idle": [12.5, 14.5]
+  },
+  "startup_thresholds": { "batt_crank_min": 9.8, "crank_duration_max": 3500 },
+  "brand_extra": {
+    "chassis_code": "K59J",
+    "engine_type": "eSP 150cc",
+    "acg_starter": true,
+    "iss_equipped": true,
+    "ecu_baud_rate": 10400,
+    "protocol": "HONDA_KLINE_HDS"
+  }
+}

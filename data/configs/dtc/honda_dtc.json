@@ -1,0 +1,78 @@
+{
+  "brand": "honda",
+  "version": "1.0",
+  "codes": [
+    {
+      "code": "1",
+      "desc_id": "ECM/PCM Internal Error",
+      "desc_en": "ECM/PCM Internal",
+      "fix": "Reset ECU. Jika tetap muncul, ganti ECU.",
+      "severity": "critical",
+      "component": "ECU"
+    },
+    {
+      "code": "7",
+      "desc_id": "Engine Speed Sensor (CKP)",
+      "desc_en": "Engine Speed Sensor",
+      "fix": "Cek CKP sensor dan gap. Cek kabel dan konektor. Bersihkan dari kotoran.",
+      "severity": "high",
+      "component": "CKP Sensor"
+    },
+    {
+      "code": "8",
+      "desc_id": "TDC Sensor",
+      "desc_en": "Top Dead Center Sensor",
+      "fix": "Cek TDC sensor di cover magnet. Cek gap dan kabel.",
+      "severity": "high",
+      "component": "TDC Sensor"
+    },
+    {
+      "code": "12",
+      "desc_id": "Injector Fault",
+      "desc_en": "Injector Circuit Malfunction",
+      "fix": "Cek resistansi injektor (11-13 ohm). Cek kabel dan konektor. Cek relay FI.",
+      "severity": "high",
+      "component": "Injector"
+    },
+    {
+      "code": "21",
+      "desc_id": "MAP Sensor",
+      "desc_en": "Manifold Absolute Pressure Sensor",
+      "fix": "Cek vacuum hose. Cek konektor MAP. Ukur voltage output (1V idle, 4V WOT).",
+      "severity": "medium",
+      "component": "MAP Sensor"
+    },
+    {
+      "code": "24",
+      "desc_id": "Sensor O2",
+      "desc_en": "Oxygen Sensor",
+      "fix": "Cek konektor O2 sensor. Sensor mungkin sudah aus (ganti tiap 40.000km).",
+      "severity": "medium",
+      "component": "O2 Sensor"
+    },
+    {
+      "code": "29",
+      "desc_id": "IACV (Idle Air Control Valve)",
+      "desc_en": "Idle Air Control Valve",
+      "fix": "Bersihkan IACV dengan carb cleaner. Cek konektor 2-pin. Ganti jika macet.",
+      "severity": "medium",
+      "component": "IACV"
+    },
+    {
+      "code": "33",
+      "desc_id": "ECM EEPROM Error",
+      "desc_en": "ECM EEPROM Malfunction",
+      "fix": "Reset ECU (cabut fuse FI 30 detik). Jika tetap, ganti ECU.",
+      "severity": "high",
+      "component": "ECU"
+    },
+    {
+      "code": "54",
+      "desc_id": "Bank Angle Sensor",
+      "desc_en": "Bank Angle Sensor",
+      "fix": "Cek sensor sudut kemiringan (biasanya di bawah jok). Reset dengan tegakkan motor.",
+      "severity": "low",
+      "component": "Bank Angle Sensor"
+    }
+  ]
+}

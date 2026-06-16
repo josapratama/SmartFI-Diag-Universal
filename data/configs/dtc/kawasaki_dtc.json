@@ -1,0 +1,146 @@
+{
+  "brand": "kawasaki",
+  "version": "1.0",
+  "codes": [
+    {
+      "code": "11",
+      "desc_id": "ECU Internal Error",
+      "fix": "Reset ECU (cabut fuse 30 detik). Jika tetap, ganti ECU.",
+      "severity": "critical",
+      "component": "ECU"
+    },
+    {
+      "code": "12",
+      "desc_id": "Crankshaft Position Sensor",
+      "fix": "Cek CKP sensor, gap, dan kabel.",
+      "severity": "high",
+      "component": "CKP"
+    },
+    {
+      "code": "13",
+      "desc_id": "Camshaft Position Sensor",
+      "fix": "Cek CMP sensor dan timing.",
+      "severity": "high",
+      "component": "CMP"
+    },
+    {
+      "code": "14",
+      "desc_id": "Sub Throttle Position Sensor",
+      "fix": "Cek sub-TPS dan kabel.",
+      "severity": "medium",
+      "component": "Sub-TPS"
+    },
+    {
+      "code": "15",
+      "desc_id": "Main Throttle Position Sensor",
+      "fix": "Kalibrasi TPS. Cek konektor.",
+      "severity": "high",
+      "component": "TPS"
+    },
+    {
+      "code": "16",
+      "desc_id": "Intake Air Pressure Sensor",
+      "fix": "Cek MAP sensor dan vacuum hose.",
+      "severity": "medium",
+      "component": "MAP"
+    },
+    {
+      "code": "17",
+      "desc_id": "Intake Air Temp Sensor",
+      "fix": "Cek sensor IAT.",
+      "severity": "low",
+      "component": "IAT"
+    },
+    {
+      "code": "18",
+      "desc_id": "Engine Coolant Temp Sensor",
+      "fix": "Cek sensor ECT dan kabel.",
+      "severity": "medium",
+      "component": "ECT"
+    },
+    {
+      "code": "21",
+      "desc_id": "Vehicle Speed Sensor",
+      "fix": "Cek sensor speed.",
+      "severity": "low",
+      "component": "VSS"
+    },
+    {
+      "code": "22",
+      "desc_id": "Gear Position Sensor",
+      "fix": "Cek sensor posisi gigi.",
+      "severity": "low",
+      "component": "GPS"
+    },
+    {
+      "code": "23",
+      "desc_id": "Tip Over Sensor",
+      "fix": "Tegakkan motor. Cek sensor.",
+      "severity": "low",
+      "component": "TOS"
+    },
+    {
+      "code": "24",
+      "desc_id": "O2 Sensor",
+      "fix": "Cek sensor O2. Ganti jika aus.",
+      "severity": "medium",
+      "component": "O2"
+    },
+    {
+      "code": "31",
+      "desc_id": "Fuel Injector #1",
+      "fix": "Cek injektor silinder 1.",
+      "severity": "high",
+      "component": "Injector"
+    },
+    {
+      "code": "32",
+      "desc_id": "Fuel Injector #2",
+      "fix": "Cek injektor silinder 2.",
+      "severity": "high",
+      "component": "Injector"
+    },
+    {
+      "code": "33",
+      "desc_id": "Fuel Pump Relay",
+      "fix": "Cek relay dan wiring fuel pump.",
+      "severity": "high",
+      "component": "Fuel Pump"
+    },
+    {
+      "code": "34",
+      "desc_id": "Ignition Coil #1",
+      "fix": "Cek coil silinder 1.",
+      "severity": "high",
+      "component": "Coil"
+    },
+    {
+      "code": "35",
+      "desc_id": "Ignition Coil #2",
+      "fix": "Cek coil silinder 2.",
+      "severity": "high",
+      "component": "Coil"
+    },
+    {
+      "code": "41",
+      "desc_id": "Sub Throttle Valve Actuator",
+      "fix": "Cek servo sub-throttle.",
+      "severity": "medium",
+      "component": "STV"
+    },
+    {
+      "code": "51",
+      "desc_id": "Battery Voltage Low",
+      "fix": "Cek aki dan sistem charging.",
+      "severity": "medium",
+      "component": "Battery"
+    },
+    {
+      "code": "62",
+      "desc_id": "PAIR Solenoid Valve",
+      "fix": "Cek solenoid PAIR.",
+      "severity": "low",
+      "component": "PAIR"
+    }
+  ]
+}

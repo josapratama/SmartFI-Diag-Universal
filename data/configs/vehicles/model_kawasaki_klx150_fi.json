@@ -1,0 +1,32 @@
+{
+  "id": 312,
+  "name": "Kawasaki KLX 150 FI 2019",
+  "brand": "kawasaki",
+  "family": "offroad",
+  "model": "klx150_fi_2019",
+  "parent_profile": "base_kawasaki",
+  "tier": 2,
+  "capabilities": {
+    "has_tps": true,
+    "has_rpm": true,
+    "has_temp": true,
+    "has_mil": true,
+    "has_starter_signal": true,
+    "has_injector_pulse": true,
+    "has_ignition_pulse": true,
+    "has_ecu_protocol": false,
+    "has_battery_monitor": true
+  },
+  "thresholds": {
+    "rpm_idle": [1300, 1600],
+    "tps_v": [0.5, 4.5],
+    "temp_v_overheat": 3.6,
+    "batt_v_idle": [12.5, 14.5]
+  },
+  "startup_thresholds": { "batt_crank_min": 9.0, "crank_duration_max": 5000 },
+  "brand_extra": {
+    "engine_type": "144cc SOHC Air Cooled",
+    "liquid_cooled": false,
+    "notes": "Passive monitoring. Air cooled - temp sensor mungkin tidak tersedia di semua versi."
+  }
+}
