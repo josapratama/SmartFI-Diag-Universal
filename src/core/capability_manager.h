@@ -17,6 +17,7 @@ public:
         if (feature == "temp_monitor") return profile.caps.has_temp;
         if (feature == "mil_reader") return profile.caps.has_mil;
         if (feature == "starter_analyzer") return profile.caps.has_starter_signal && profile.caps.has_rpm;
+        if (feature == "injector_pulse") return profile.caps.has_injector_pulse;
         if (feature == "ecu_diag") return profile.tier >= TIER_4_FULL_PROTOCOL && profile.caps.has_ecu_protocol;
         
         return false;

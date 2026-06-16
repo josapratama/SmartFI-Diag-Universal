@@ -49,6 +49,47 @@ bool ConfigLoader::loadHardwareConfig(const char* filename, HardwareConfig& conf
     config.i2c_display.scl = doc["ui_module"]["display"]["scl"];
     config.i2c_display.address = strtol(doc["ui_module"]["display"]["address"], NULL, 16);
 
+    // Buttons
+    JsonArray buttons = doc["ui_module"]["buttons"];
+    for (JsonObject btn : buttons) {
+        String label = btn["label"].as<String>();
+        int pin = btn["pin"];
+        if (label == "UP") config.buttons.up = pin;
+        else if (label == "DOWN") config.buttons.down = pin;
+        else if (label == "SELECT") config.buttons.select = pin;
+        else if (label == "BACK") config.buttons.back = pin;
+    }
+
+    // Buzzer
+    config.buzzer_pin = doc["ui_module"]["audio"]["buzzer_pin"] | 13;
+
+    // Optional Modules
+    config.optional = {}; // Zero-init
+    if (doc.containsKey("optional_modules")) {
+        JsonObject opt = doc["optional_modules"];
+        
+        if (opt.containsKey("gps")) {
+            config.optional.gps.enabled = opt["gps"]["enabled"] | false;
+            config.optional.gps.rx_pin = opt["gps"]["rx_pin"] | -1;
+            config.optional.gps.tx_pin = opt["gps"]["tx_pin"] | -1;
+            config.optional.gps.baud = opt["gps"]["baud"] | 9600;
+        }
+        if (opt.containsKey("canbus")) {
+            config.optional.canbus.enabled = opt["canbus"]["enabled"] | false;
+            config.optional.canbus.cs_pin = opt["canbus"]["cs_pin"] | -1;
+            config.optional.canbus.speed = opt["canbus"]["speed"] | 500000;
+        }
+        if (opt.containsKey("relay")) {
+            config.optional.relay.enabled = opt["relay"]["enabled"] | false;
+            config.optional.relay.pin_1 = opt["relay"]["pin_1"] | -1;
+            config.optional.relay.pin_2 = opt["relay"]["pin_2"] | -1;
+        }
+        if (opt.containsKey("o2_sensor")) {
+            config.optional.o2_sensor.enabled = opt["o2_sensor"]["enabled"] | false;
+            config.optional.o2_sensor.adc_pin = opt["o2_sensor"]["adc_pin"] | -1;
+        }
+    }
+
     return true;
 }
 

@@ -33,6 +33,29 @@ struct DigitalChannelConfig {
     std::vector<String> software_binding;
 };
 
+struct OptionalModules {
+    struct {
+        bool enabled;
+        int rx_pin;
+        int tx_pin;
+        int baud;
+    } gps;
+    struct {
+        bool enabled;
+        int cs_pin;
+        uint32_t speed;
+    } canbus;
+    struct {
+        bool enabled;
+        int pin_1;
+        int pin_2;
+    } relay;
+    struct {
+        bool enabled;
+        int adc_pin;
+    } o2_sensor;
+};
+
 struct HardwareConfig {
     String project_name;
     String hw_revision;
@@ -47,6 +70,7 @@ struct HardwareConfig {
         int up, down, select, back;
     } buttons;
     int buzzer_pin;
+    OptionalModules optional;
 };
 
 // ==========================================
