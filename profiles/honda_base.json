@@ -1,8 +1,0 @@
-{
-  "parent_profile": "base_profile",
-  "brand": "Honda",
-  "tier": 2,
-  "mil_decoding_mode": "HONDA_BLINK",
-  "idle_rpm_range": [1400, 1700],
-  "temp_idle_threshold": 70
-}

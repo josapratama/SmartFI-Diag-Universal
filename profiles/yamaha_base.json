@@ -1,8 +1,0 @@
-{
-  "parent_profile": "base_profile",
-  "brand": "Yamaha",
-  "tier": 2,
-  "mil_decoding_mode": "YAMAHA_BLINK",
-  "idle_rpm_range": [1300, 1600],
-  "temp_idle_threshold": 65
-}
