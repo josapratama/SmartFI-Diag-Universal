@@ -27,18 +27,45 @@ public:
     }
 
     void startNewSession() {
-        String fileName = "/log_" + String(millis()) + ".csv";
+        // Generate unique filename using session counter stored on SD
+        int sessionNum = 0;
+        File counterFile = SD.open("/session_counter.txt", FILE_READ);
+        if (counterFile) {
+            sessionNum = counterFile.parseInt();
+            counterFile.close();
+        }
+        sessionNum++;
+        counterFile = SD.open("/session_counter.txt", FILE_WRITE);
+        if (counterFile) {
+            counterFile.print(sessionNum);
+            counterFile.close();
+        }
+
+        String fileName = "/log_session_" + String(sessionNum) + ".csv";
         logFile = SD.open(fileName, FILE_WRITE);
         if (logFile) {
             logFile.println("Timestamp,Battery_V,TPS_V,RPM,Temp_C,MIL_Active");
+            Serial.println("Logging to: " + fileName);
+        } else {
+            Serial.println("Failed to create log file: " + fileName);
         }
     }
 
     void logData(float battery_v, float tps_v, float rpm, float temp, bool mil_active) {
-        if (!logFile) return;
+        if (!logFile || !logFile.available()) {
+            // File handle invalid, try to skip gracefully
+            return;
+        }
         
-        logFile.printf("%lu,%.2f,%.2f,%.0f,%.1f,%d\n", 
+        int written = logFile.printf("%lu,%.2f,%.2f,%.0f,%.1f,%d\n", 
             millis(), battery_v, tps_v, rpm, temp, mil_active ? 1 : 0);
+        
+        if (written <= 0) {
+            // Write failed - SD card may have been removed
+            Serial.println("[Log] Write failed, stopping session");
+            logFile.close();
+            return;
+        }
         
         // Flush periodically
         static uint32_t lastFlush = 0;

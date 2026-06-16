@@ -33,13 +33,17 @@ void DiagEngine::analyzeTPS(const VehicleProfile& profile, float tps_v) {
 }
 
 void DiagEngine::analyzeIdle(const VehicleProfile& profile, float rpm, float temp) {
-    // Only analyze idle stability when engine is warm
-    if (temp >= profile.thresholds.temp_v_min) {
+    // Only analyze idle stability when engine is warm (temp is in °C from TemperatureService)
+    // Consider engine "warm" above 60°C
+    if (temp >= 60.0f) {
         if (rpm > 0 && (rpm < profile.thresholds.rpm_idle_min || rpm > profile.thresholds.rpm_idle_max)) {
             status.idle_unstable = true;
         } else {
             status.idle_unstable = false;
         }
+    } else {
+        // Engine cold - can't assess idle stability
+        status.idle_unstable = false;
     }
 }
 
@@ -50,6 +54,9 @@ void DiagEngine::analyzeCharging(const VehicleProfile& profile, float battery_v,
         } else {
             status.charging_failure = false;
         }
+    } else {
+        // Can't assess charging at low RPM - reset flag
+        status.charging_failure = false;
     }
 }
 
