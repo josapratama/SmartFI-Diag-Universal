@@ -1,239 +1,635 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart FI Diagnostic Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart FI Diagnostic Tool</title>
     <style>
-        :root {
-            --primary: #2563eb;
-            --bg: #0f172a;
-            --card: #1e293b;
-            --text: #f8fafc;
-            --subtext: #94a3b8;
-            --danger: #ef4444;
-            --success: #22c55e;
-            --warning: #f59e0b;
-        }
-        body { 
-            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
-            background: var(--bg); 
-            color: var(--text); 
-            margin: 0; 
-            padding: 10px;
-            line-height: 1.5;
-        }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .card { background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid #334155; }
-        .card h3 { margin: 0 0 10px 0; color: var(--subtext); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-        .value { font-size: 2.2rem; font-weight: 800; margin: 5px 0; display: flex; align-items: baseline; gap: 5px; }
-        .unit { font-size: 1rem; color: var(--subtext); font-weight: 400; }
-        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 99px; font-size: 0.75rem; font-weight: 700; margin-top: 10px; }
-        .status-ok { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
-        .status-warn { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-        .status-error { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-        
-        header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 20px; 
-            background: var(--card); 
-            border-radius: 16px; 
-            margin-bottom: 20px;
-            border: 1px solid #334155;
-        }
-        .logo { font-weight: 800; font-size: 1.4rem; color: var(--primary); display: flex; align-items: center; gap: 10px; }
-        .logo span { color: var(--text); }
-        
-        select { 
-            background: #0f172a; 
-            color: white; 
-            padding: 8px 16px; 
-            border-radius: 8px; 
-            border: 1px solid #334155; 
-            outline: none;
-            cursor: pointer;
-        }
-        
-        .diag-item { 
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-            padding: 12px; 
-            border-radius: 12px; 
-            background: #0f172a; 
-            margin-bottom: 10px;
-            border-left: 4px solid var(--success);
-        }
-        .diag-item.warn { border-left-color: var(--warning); }
-        .diag-item.error { border-left-color: var(--danger); }
-        
-        .chart-container { height: 250px; width: 100%; margin-top: 10px; }
-        
-        @media (max-width: 640px) {
-            header { flex-direction: column; gap: 15px; text-align: center; }
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #1a1a2e;
+        color: #eee;
+      }
+      .header {
+        background: #16213e;
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #0f3460;
+      }
+      .header h1 {
+        font-size: 18px;
+        color: #4fc3f7;
+      }
+      .header .profile {
+        font-size: 12px;
+        color: #aaa;
+      }
+      .nav {
+        display: flex;
+        background: #16213e;
+        overflow-x: auto;
+        border-bottom: 1px solid #0f3460;
+      }
+      .nav button {
+        background: none;
+        border: none;
+        color: #aaa;
+        padding: 12px 16px;
+        cursor: pointer;
+        white-space: nowrap;
+        font-size: 13px;
+      }
+      .nav button.active {
+        color: #4fc3f7;
+        border-bottom: 2px solid #4fc3f7;
+      }
+      .tab {
+        display: none;
+        padding: 15px;
+      }
+      .tab.active {
+        display: block;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+        margin-bottom: 15px;
+      }
+      .card {
+        background: #16213e;
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+      }
+      .card .value {
+        font-size: 28px;
+        font-weight: bold;
+        color: #4fc3f7;
+        margin: 8px 0;
+      }
+      .card .label {
+        font-size: 11px;
+        color: #888;
+        text-transform: uppercase;
+      }
+      .card .unit {
+        font-size: 12px;
+        color: #666;
+      }
+      .health-ring {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 10px;
+        position: relative;
+      }
+      .health-ring .score {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 32px;
+        font-weight: bold;
+      }
+      .section {
+        background: #16213e;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 12px;
+      }
+      .section h3 {
+        color: #4fc3f7;
+        margin-bottom: 10px;
+        font-size: 14px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      td,
+      th {
+        padding: 8px;
+        border-bottom: 1px solid #0f3460;
+        text-align: left;
+      }
+      th {
+        color: #888;
+      }
+      .btn {
+        background: #0f3460;
+        color: #4fc3f7;
+        border: 1px solid #4fc3f7;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        margin: 4px;
+      }
+      .btn:hover {
+        background: #4fc3f7;
+        color: #1a1a2e;
+      }
+      .btn-danger {
+        border-color: #ef5350;
+        color: #ef5350;
+      }
+      .btn-danger:hover {
+        background: #ef5350;
+        color: white;
+      }
+      .status-good {
+        color: #66bb6a;
+      }
+      .status-warn {
+        color: #ffa726;
+      }
+      .status-bad {
+        color: #ef5350;
+      }
+      .wizard-list {
+        list-style: none;
+      }
+      .wizard-list li {
+        padding: 12px;
+        border-bottom: 1px solid #0f3460;
+        cursor: pointer;
+      }
+      .wizard-list li:hover {
+        background: #0f3460;
+      }
+      .wizard-result {
+        background: #0d1b2a;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 10px;
+      }
+      .chart-container {
+        height: 200px;
+        background: #0d1b2a;
+        border-radius: 8px;
+        padding: 10px;
+        margin-top: 10px;
+      }
+      #connection-status {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+      .connected {
+        background: #66bb6a;
+      }
+      .disconnected {
+        background: #ef5350;
+      }
     </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <div class="logo">⚡ Smart<span>FI Diag</span></div>
-            <div>
-                <select id="vehicleProfile" onchange="changeProfile()">
-                    <option value="model_honda_beat_2014">Honda Beat FI 2014</option>
-                    <option value="model_yamaha_mio_z">Yamaha Mio Z</option>
-                </select>
-            </div>
-        </header>
+  </head>
+  <body>
+    <div class="header">
+      <div>
+        <h1>Smart FI Diagnostic</h1>
+        <span class="profile" id="profile-name">Loading...</span>
+      </div>
+      <div>
+        <span id="connection-status" class="disconnected"></span>
+        <span style="font-size: 11px; color: #888" id="conn-text">Offline</span>
+      </div>
+    </div>
 
-        <div class="grid">
-            <div class="card">
-                <h3>Battery Voltage</h3>
-                <div class="value" id="valBatt">-- <span class="unit">V</span></div>
-                <span class="status-badge status-ok" id="statBatt">Sistem Normal</span>
-            </div>
-            <div class="card">
-                <h3>Engine RPM</h3>
-                <div class="value" id="valRPM">-- <span class="unit">RPM</span></div>
-                <span class="status-badge status-ok" id="statRPM">Stasioner</span>
-            </div>
-            <div class="card">
-                <h3>TPS Position</h3>
-                <div class="value" id="valTPS">-- <span class="unit">%</span></div>
-                <div id="valTPS_v" style="color:var(--subtext); font-size: 0.8rem;">0.00 V</div>
-            </div>
-            <div class="card">
-                <h3>Engine Temp</h3>
-                <div class="value" id="valTemp">-- <span class="unit">°C</span></div>
-                <span class="status-badge status-ok" id="statTemp">Suhu Kerja</span>
-            </div>
-        </div>
+    <div class="nav">
+      <button class="active" onclick="showTab('live')">Live</button>
+      <button onclick="showTab('health')">Health</button>
+      <button onclick="showTab('dtc')">DTC</button>
+      <button onclick="showTab('wizard')">Wizard</button>
+      <button onclick="showTab('freeze')">Freeze</button>
+      <button onclick="showTab('crank')">Starter</button>
+      <button onclick="showTab('fuel')">Fuel</button>
+      <button onclick="showTab('trend')">Trend</button>
+      <button onclick="showTab('report')">Report</button>
+    </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px; margin-bottom: 20px;" class="grid-main">
-            <div class="card">
-                <h3>Hasil Diagnosa Live</h3>
-                <div id="diagList">
-                    <div class="diag-item">
-                        <span>✅ Menunggu data dari ESP32...</span>
-                    </div>
-                </div>
-            </div>
-            <div class="card">
-                <h3>Telemetri (RPM vs TPS)</h3>
-                <div class="chart-container">
-                    <canvas id="liveChart"></canvas>
-                </div>
-            </div>
+    <!-- LIVE TAB -->
+    <div class="tab active" id="tab-live">
+      <div class="grid">
+        <div class="card">
+          <div class="label">Battery</div>
+          <div class="value" id="v-batt">--</div>
+          <div class="unit">Volt</div>
         </div>
+        <div class="card">
+          <div class="label">RPM</div>
+          <div class="value" id="v-rpm">--</div>
+          <div class="unit">rev/min</div>
+        </div>
+        <div class="card">
+          <div class="label">TPS</div>
+          <div class="value" id="v-tps">--</div>
+          <div class="unit">%</div>
+        </div>
+        <div class="card">
+          <div class="label">Temperature</div>
+          <div class="value" id="v-temp">--</div>
+          <div class="unit">&deg;C</div>
+        </div>
+        <div class="card">
+          <div class="label">Fuel Rate</div>
+          <div class="value" id="v-fuel">--</div>
+          <div class="unit">cc/min</div>
+        </div>
+        <div class="card">
+          <div class="label">Health</div>
+          <div class="value" id="v-health">--</div>
+          <div class="unit">%</div>
+        </div>
+      </div>
+      <button class="btn" onclick="captureFreeze()">
+        Capture Freeze Frame
+      </button>
+    </div>
+
+    <!-- HEALTH TAB -->
+    <div class="tab" id="tab-health">
+      <div class="section">
+        <h3>Overall Health Score</h3>
+        <div style="text-align: center">
+          <div class="value" id="health-score" style="font-size: 48px">--</div>
+          <p id="health-summary" style="color: #888; margin-top: 8px">
+            Loading...
+          </p>
+        </div>
+      </div>
+      <div class="section">
+        <h3>Component Scores</h3>
+        <table>
+          <tr>
+            <td>Baterai</td>
+            <td id="h-batt">--</td>
+          </tr>
+          <tr>
+            <td>TPS</td>
+            <td id="h-tps">--</td>
+          </tr>
+          <tr>
+            <td>Idle Stability</td>
+            <td id="h-idle">--</td>
+          </tr>
+          <tr>
+            <td>Charging</td>
+            <td id="h-charge">--</td>
+          </tr>
+          <tr>
+            <td>Thermal</td>
+            <td id="h-thermal">--</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- DTC TAB -->
+    <div class="tab" id="tab-dtc">
+      <div class="section">
+        <h3>Diagnostic Trouble Codes</h3>
+        <div id="dtc-list"><p style="color: #888">No DTCs detected</p></div>
+        <div style="margin-top: 12px">
+          <button class="btn" onclick="readDTC()">Read DTC</button>
+          <button class="btn btn-danger" onclick="clearDTC()">Clear DTC</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- WIZARD TAB -->
+    <div class="tab" id="tab-wizard">
+      <div class="section">
+        <h3>Pilih Gejala Motor</h3>
+        <ul class="wizard-list" id="wizard-symptoms"></ul>
+      </div>
+      <div class="section" id="wizard-result-section" style="display: none">
+        <h3>Hasil Analisis</h3>
+        <div class="wizard-result" id="wizard-result"></div>
+      </div>
+    </div>
+
+    <!-- FREEZE FRAME TAB -->
+    <div class="tab" id="tab-freeze">
+      <div class="section">
+        <h3>Freeze Frame Data</h3>
+        <div id="freeze-list">
+          <p style="color: #888">No freeze frames captured</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CRANKING TAB -->
+    <div class="tab" id="tab-crank">
+      <div class="section">
+        <h3>Starter Analysis</h3>
+        <div id="crank-list">
+          <p style="color: #888">No cranking events recorded</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- FUEL TAB -->
+    <div class="tab" id="tab-fuel">
+      <div class="grid">
+        <div class="card">
+          <div class="label">Current Rate</div>
+          <div class="value" id="fuel-rate">--</div>
+          <div class="unit">cc/min</div>
+        </div>
+        <div class="card">
+          <div class="label">Total Used</div>
+          <div class="value" id="fuel-total">--</div>
+          <div class="unit">cc</div>
+        </div>
+      </div>
+      <button class="btn" onclick="resetFuel()">Reset Trip</button>
+    </div>
+
+    <!-- TREND TAB -->
+    <div class="tab" id="tab-trend">
+      <div class="section">
+        <h3>Sensor Trends (Last 5 min)</h3>
+        <div class="chart-container">
+          <canvas id="trend-chart"></canvas>
+        </div>
+        <p style="color: #666; font-size: 11px; margin-top: 8px">
+          Auto-updates every 5 seconds
+        </p>
+      </div>
+    </div>
+
+    <!-- REPORT TAB -->
+    <div class="tab" id="tab-report">
+      <div class="section">
+        <h3>Generate Diagnostic Report</h3>
+        <p style="color: #888; margin-bottom: 12px">
+          Generate a complete HTML report with all diagnostic data.
+        </p>
+        <button class="btn" onclick="generateReport()">Generate Report</button>
+        <button class="btn" onclick="downloadReport()">
+          Download Last Report
+        </button>
+        <p id="report-status" style="color: #888; margin-top: 8px"></p>
+      </div>
     </div>
 
     <script>
-        let ws;
-        const chartCtx = document.getElementById('liveChart').getContext('2d');
-        const liveChart = new Chart(chartCtx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [
-                    { 
-                        label: 'RPM', 
-                        data: [], 
-                        borderColor: '#2563eb', 
-                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                        fill: true,
-                        tension: 0.4, 
-                        yAxisID: 'y',
-                        pointRadius: 0
-                    },
-                    { 
-                        label: 'TPS %', 
-                        data: [], 
-                        borderColor: '#22c55e', 
-                        tension: 0.4, 
-                        yAxisID: 'y1',
-                        pointRadius: 0
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: true, labels: { color: '#94a3b8' } } },
-                scales: {
-                    x: { display: false },
-                    y: { 
-                        type: 'linear', 
-                        display: true, 
-                        position: 'left', 
-                        min: 0, 
-                        max: 10000,
-                        grid: { color: '#334155' },
-                        ticks: { color: '#94a3b8' }
-                    },
-                    y1: { 
-                        type: 'linear', 
-                        display: true, 
-                        position: 'right', 
-                        min: 0, 
-                        max: 100, 
-                        grid: { drawOnChartArea: false },
-                        ticks: { color: '#94a3b8' }
-                    }
-                }
-            }
+      // WebSocket connection
+      let ws;
+      function connectWS() {
+        ws = new WebSocket("ws://" + location.host + "/ws");
+        ws.onopen = () => {
+          document.getElementById("connection-status").className = "connected";
+          document.getElementById("conn-text").textContent = "Live";
+        };
+        ws.onclose = () => {
+          document.getElementById("connection-status").className =
+            "disconnected";
+          document.getElementById("conn-text").textContent = "Offline";
+          setTimeout(connectWS, 3000);
+        };
+        ws.onmessage = (e) => {
+          try {
+            const d = JSON.parse(e.data);
+            document.getElementById("v-batt").textContent = d.batt || "--";
+            document.getElementById("v-rpm").textContent = d.rpm || "--";
+            document.getElementById("v-tps").textContent = d.tps_pct || "--";
+            document.getElementById("v-temp").textContent = d.temp || "--";
+            document.getElementById("v-fuel").textContent = d.fuel_rate || "--";
+            document.getElementById("v-health").textContent = d.health || "--";
+          } catch (err) {}
+        };
+      }
+      connectWS();
+
+      // Tab navigation
+      function showTab(name) {
+        document
+          .querySelectorAll(".tab")
+          .forEach((t) => t.classList.remove("active"));
+        document
+          .querySelectorAll(".nav button")
+          .forEach((b) => b.classList.remove("active"));
+        document.getElementById("tab-" + name).classList.add("active");
+        event.target.classList.add("active");
+        if (name === "health") loadHealth();
+        if (name === "dtc") loadDTC();
+        if (name === "wizard") loadWizardSymptoms();
+        if (name === "freeze") loadFreeze();
+        if (name === "crank") loadCrank();
+        if (name === "fuel") loadFuel();
+        if (name === "trend") loadTrend();
+      }
+
+      // API calls
+      async function loadHealth() {
+        const r = await fetch("/api/health");
+        const d = await r.json();
+        document.getElementById("health-score").textContent = d.score + "%";
+        document.getElementById("health-summary").textContent = d.summary || "";
+        document.getElementById("h-batt").textContent =
+          (d.batt_score || "--") + "%";
+        document.getElementById("h-tps").textContent =
+          (d.tps_score || "--") + "%";
+        document.getElementById("h-idle").textContent =
+          (d.idle_score || "--") + "%";
+        document.getElementById("h-charge").textContent =
+          (d.charge_score || "--") + "%";
+        document.getElementById("h-thermal").textContent =
+          (d.thermal_score || "--") + "%";
+        const score = parseFloat(d.score);
+        const el = document.getElementById("health-score");
+        el.className =
+          score >= 70
+            ? "value status-good"
+            : score >= 40
+              ? "value status-warn"
+              : "value status-bad";
+      }
+
+      async function loadDTC() {
+        const r = await fetch("/api/dtc");
+        const dtcs = await r.json();
+        const el = document.getElementById("dtc-list");
+        if (!dtcs.length) {
+          el.innerHTML = '<p style="color:#888">No DTCs detected</p>';
+          return;
+        }
+        let html =
+          "<table><tr><th>Code</th><th>Description</th><th>Fix</th></tr>";
+        dtcs.forEach((d) => {
+          html += `<tr><td>${d.code}</td><td>${d.desc}</td><td>${d.fix || "-"}</td></tr>`;
         });
+        html += "</table>";
+        el.innerHTML = html;
+      }
 
-        function connectWS() {
-            ws = new WebSocket(`ws://${window.location.hostname}/ws`);
-            ws.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    updateUI(data);
-                } catch (e) { console.error("JSON Error", e); }
-            };
-            ws.onerror = (err) => console.error("WS Error", err);
-            ws.onclose = () => setTimeout(connectWS, 2000);
+      async function readDTC() {
+        await fetch("/api/dtc");
+        loadDTC();
+      }
+      async function clearDTC() {
+        await fetch("/api/dtc/clear", { method: "POST" });
+        setTimeout(loadDTC, 1000);
+      }
+
+      async function loadWizardSymptoms() {
+        const r = await fetch("/api/wizard/symptoms");
+        const symptoms = await r.json();
+        const el = document.getElementById("wizard-symptoms");
+        el.innerHTML = "";
+        symptoms.forEach((s) => {
+          const li = document.createElement("li");
+          li.textContent = s.name;
+          li.onclick = () => runWizard(s.id);
+          el.appendChild(li);
+        });
+      }
+
+      async function runWizard(id) {
+        await fetch("/api/wizard/analyze?id=" + id);
+        setTimeout(async () => {
+          const r = await fetch("/api/wizard/result");
+          const d = await r.json();
+          const el = document.getElementById("wizard-result");
+          el.innerHTML = `<p><strong>${d.diagnosis}</strong></p>
+                <p style="margin-top:8px">Confidence: ${d.confidence}%</p>
+                <p style="margin-top:4px">Severity: <span class="status-${d.severity === "critical" ? "bad" : d.severity === "warning" ? "warn" : "good"}">${d.severity}</span></p>
+                <p style="margin-top:8px"><strong>Saran:</strong> ${d.fix}</p>
+                ${d.evidence ? '<p style="margin-top:8px;color:#888">Evidence: ' + d.evidence.join(", ") + "</p>" : ""}`;
+          document.getElementById("wizard-result-section").style.display =
+            "block";
+        }, 500);
+      }
+
+      async function loadFreeze() {
+        const r = await fetch("/api/freeze");
+        const frames = await r.json();
+        const el = document.getElementById("freeze-list");
+        if (!frames.length) {
+          el.innerHTML = '<p style="color:#888">No freeze frames</p>';
+          return;
         }
+        let html =
+          "<table><tr><th>Trigger</th><th>Batt</th><th>RPM</th><th>TPS</th><th>Temp</th></tr>";
+        frames.forEach((f) => {
+          html += `<tr><td>${f.trigger}</td><td>${f.batt}V</td><td>${f.rpm}</td><td>${f.tps_pct}%</td><td>${f.temp}C</td></tr>`;
+        });
+        html += "</table>";
+        el.innerHTML = html;
+      }
 
-        function updateUI(data) {
-            document.getElementById('valBatt').innerHTML = `${data.batt.toFixed(2)} <span class="unit">V</span>`;
-            document.getElementById('valRPM').innerHTML = `${data.rpm.toFixed(0)} <span class="unit">RPM</span>`;
-            document.getElementById('valTPS').innerHTML = `${data.tps_pct.toFixed(0)} <span class="unit">%</span>`;
-            document.getElementById('valTemp').innerHTML = `${data.temp.toFixed(1)} <span class="unit">°C</span>`;
-            
-            // Logic status sederhana
-            const statBatt = document.getElementById('statBatt');
-            if (data.batt < 12.0) {
-                statBatt.innerText = "Aki Lemah";
-                statBatt.className = "status-badge status-warn";
-            } else {
-                statBatt.innerText = "Sistem Normal";
-                statBatt.className = "status-badge status-ok";
-            }
+      async function captureFreeze() {
+        await fetch("/api/freeze/capture", { method: "POST" });
+        alert("Freeze Frame Captured!");
+      }
 
-            // Update Chart
-            if (liveChart.data.labels.length > 50) {
-                liveChart.data.labels.shift();
-                liveChart.data.datasets[0].data.shift();
-                liveChart.data.datasets[1].data.shift();
-            }
-            liveChart.data.labels.push("");
-            liveChart.data.datasets[0].data.push(data.rpm);
-            liveChart.data.datasets[1].data.push(data.tps_pct);
-            liveChart.update('none');
+      async function loadCrank() {
+        const r = await fetch("/api/crank");
+        const events = await r.json();
+        const el = document.getElementById("crank-list");
+        if (!events.length) {
+          el.innerHTML = '<p style="color:#888">No cranking events</p>';
+          return;
         }
+        let html =
+          "<table><tr><th>Duration</th><th>Min V</th><th>Drop</th><th>Result</th><th>Verdict</th></tr>";
+        events.forEach((e) => {
+          html += `<tr><td>${e.duration_ms}ms</td><td>${e.min_v}V</td><td>${e.drop}V</td><td>${e.started ? "START" : "FAIL"}</td><td>${e.verdict}</td></tr>`;
+        });
+        html += "</table>";
+        el.innerHTML = html;
+      }
 
-        function changeProfile() {
-            const profile = document.getElementById('vehicleProfile').value;
-            fetch(`/api/profile?set=${profile}`, { method: 'POST' });
-        }
+      async function loadFuel() {
+        const r = await fetch("/api/fuel");
+        const d = await r.json();
+        document.getElementById("fuel-rate").textContent = d.rate_cc_min;
+        document.getElementById("fuel-total").textContent = d.total_cc;
+      }
 
-        // Jalankan koneksi saat halaman siap
-        window.onload = connectWS;
+      async function resetFuel() {
+        await fetch("/api/fuel/reset", { method: "POST" });
+        loadFuel();
+      }
+
+      async function loadTrend() {
+        // Simple text-based trend display (Chart.js can be added later)
+        const r = await fetch("/api/trend");
+        const d = await r.json();
+        const canvas = document.getElementById("trend-chart");
+        const ctx = canvas.getContext("2d");
+        if (!d.timestamps || !d.timestamps.length) return;
+        // Simple line drawing
+        canvas.width = canvas.parentElement.clientWidth - 20;
+        canvas.height = 180;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawLine(ctx, d.rpm, canvas, "#4fc3f7", "RPM");
+        drawLine(ctx, d.battery, canvas, "#66bb6a", "Batt");
+      }
+
+      function drawLine(ctx, data, canvas, color, label) {
+        if (!data || !data.length) return;
+        const max = Math.max(...data.map(Number)) || 1;
+        const min = Math.min(...data.map(Number)) || 0;
+        const range = max - min || 1;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        data.forEach((v, i) => {
+          const x = (i / data.length) * canvas.width;
+          const y =
+            canvas.height -
+            ((Number(v) - min) / range) * (canvas.height - 20) -
+            10;
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+        ctx.fillStyle = color;
+        ctx.font = "10px sans-serif";
+        ctx.fillText(
+          label + " (" + min.toFixed(0) + "-" + max.toFixed(0) + ")",
+          5,
+          12,
+        );
+      }
+
+      async function generateReport() {
+        document.getElementById("report-status").textContent = "Generating...";
+        await fetch("/api/report/generate", { method: "POST" });
+        setTimeout(() => {
+          document.getElementById("report-status").textContent =
+            "Report ready! Click Download.";
+        }, 2000);
+      }
+
+      function downloadReport() {
+        window.open("/api/report/download", "_blank");
+      }
+
+      // Load profile info
+      fetch("/api/profile")
+        .then((r) => r.json())
+        .then((d) => {
+          document.getElementById("profile-name").textContent =
+            d.name + " | Tier " + d.tier;
+        })
+        .catch(() => {});
+
+      // Auto-refresh trend
+      setInterval(() => {
+        if (document.getElementById("tab-trend").classList.contains("active"))
+          loadTrend();
+      }, 5000);
     </script>
-</body>
+  </body>
 </html>
