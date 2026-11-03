@@ -70,6 +70,7 @@ struct HardwareConfig {
         int up, down, select, back;
     } buttons;
     int buzzer_pin;
+    int sd_cs_pin;
     OptionalModules optional;
 };
 

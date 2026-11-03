@@ -1,14 +1,26 @@
 #include "config_loader.h"
-#include <FS.h>
-#include <SD.h>
+#include "fs_manager.h"
 
 bool ConfigLoader::loadHardwareConfig(const char* filename, HardwareConfig& config) {
-    File file = SD.open(filename);
-    if (!file) return false;
+    File file = FSManager::getInstance().open(filename);
+    if (!file) {
+        // Try without leading slash or with /configs/hardware/
+        String alt = filename;
+        if (!alt.startsWith("/configs/")) alt = "/configs/hardware/" + alt;
+        file = FSManager::getInstance().open(alt);
+        if (!file) {
+            Serial.printf("[ConfigLoader] Cannot open hardware config: %s\n", filename);
+            return false;
+        }
+    }
 
     StaticJsonDocument<4096> doc;
     DeserializationError error = deserializeJson(doc, file);
-    if (error) return false;
+    file.close();
+    if (error) {
+        Serial.printf("[ConfigLoader] JSON parse error in %s: %s\n", filename, error.c_str());
+        return false;
+    }
 
     config.project_name = doc["metadata"]["project_name"].as<String>();
     config.hw_revision = doc["metadata"]["hardware_revision"].as<String>();
@@ -63,6 +75,18 @@ bool ConfigLoader::loadHardwareConfig(const char* filename, HardwareConfig& conf
     // Buzzer
     config.buzzer_pin = doc["ui_module"]["audio"]["buzzer_pin"] | 13;
 
+    // Communication (K-Line & SD Card)
+    if (doc.containsKey("communication")) {
+        JsonObject comm = doc["communication"];
+        if (comm.containsKey("sd_card")) {
+            config.sd_cs_pin = comm["sd_card"]["cs_pin"] | 4;
+        } else {
+            config.sd_cs_pin = 4;
+        }
+    } else {
+        config.sd_cs_pin = 4;
+    }
+
     // Optional Modules
     config.optional = {}; // Zero-init
     if (doc.containsKey("optional_modules")) {
@@ -94,25 +118,32 @@ bool ConfigLoader::loadHardwareConfig(const char* filename, HardwareConfig& conf
 }
 
 bool ConfigLoader::loadVehicleProfile(const char* filename, VehicleProfile& profile) {
-    File file = SD.open(filename);
+    File file = FSManager::getInstance().open(filename);
     if (!file) {
         // Fallback: try relative path within /configs/vehicles/
         String path = filename;
         if (!path.startsWith("/")) path = "/configs/vehicles/" + path;
-        file = SD.open(path);
-        if (!file) return false;
+        file = FSManager::getInstance().open(path);
+        if (!file) {
+            Serial.printf("[ConfigLoader] Cannot open vehicle profile: %s\n", filename);
+            return false;
+        }
     }
 
     DynamicJsonDocument doc(4096);
     DeserializationError error = deserializeJson(doc, file);
-    if (error) return false;
+    file.close();
+    if (error) {
+        Serial.printf("[ConfigLoader] JSON parse error in profile %s: %s\n", filename, error.c_str());
+        return false;
+    }
 
     // 1. Check for parent profile
     if (doc.containsKey("parent_profile")) {
         String parentName = doc["parent_profile"].as<String>();
         String parentPath = "/configs/vehicles/" + parentName + ".json";
         if (!loadVehicleProfile(parentPath.c_str(), profile)) {
-            Serial.println("Warning: Parent profile not found: " + parentName);
+            Serial.println("[ConfigLoader] Warning: Parent profile not found: " + parentName);
         }
     }
 

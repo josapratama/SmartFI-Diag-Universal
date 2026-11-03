@@ -9,7 +9,7 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include <SD.h>
+#include "../core/fs_manager.h"
 #include <map>
 
 struct DTCEntry {
@@ -33,7 +33,7 @@ public:
         currentBrand = brand;
 
         String path = "/configs/dtc/" + brand + "_dtc.json";
-        File file = SD.open(path);
+        File file = FSManager::getInstance().open(path);
         
         if (!file) {
             Serial.println("[DTCDatabase] File not found: " + path + ", using built-in");

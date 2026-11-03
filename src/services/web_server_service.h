@@ -1,7 +1,7 @@
 /**
  * @file web_server_service.h
  * @brief Web Server Service for Smart FI Diagnostic Tool.
- * Provides REST API, WebSocket for Live Dashboard, and new feature endpoints.
+ * Provides REST API, WebSocket for Live Dashboard, TPS Calibration, Log Manager, and Acceleration Timer.
  */
 
 #ifndef WEB_SERVER_SERVICE_H
@@ -12,7 +12,10 @@
 #include <FS.h>
 #include <SD.h>
 #include "config_types.h"
+#include "core/fs_manager.h"
 #include "core/memory_manager.h"
+#include "logging_service.h"
+#include "acceleration_timer.h"
 
 // Mutex for protecting shared String data between async web handlers and main loop
 static portMUX_TYPE webDataMux = portMUX_INITIALIZER_UNLOCKED;
@@ -24,18 +27,18 @@ public:
 
     void init(const HardwareConfig& hwCfg) {
         // ==========================================
-        // STATIC FILES
+        // STATIC FILES (SPIFFS / SD dual storage)
         // ==========================================
         server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-            request->send(SD, "/index.html", "text/html");
+            request->send(FSManager::getInstance().getWebFS(), "/index.html", "text/html");
         });
 
         server.on("/dashboard.js", HTTP_GET, [](AsyncWebServerRequest *request){
-            request->send(SD, "/dashboard.js", "application/javascript");
+            request->send(FSManager::getInstance().getWebFS(), "/dashboard.js", "application/javascript");
         });
 
         server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request){
-            request->send(SD, "/style.css", "text/css");
+            request->send(FSManager::getInstance().getWebFS(), "/style.css", "text/css");
         });
 
         // ==========================================
@@ -198,10 +201,69 @@ public:
         });
 
         // ==========================================
-        // LOG DOWNLOAD
+        // LOG MANAGER API (List & Download CSVs)
         // ==========================================
         server.on("/api/logs", HTTP_GET, [](AsyncWebServerRequest *request){
-            request->send(SD, "/diag_log.csv", "text/csv", true);
+            if (request->hasParam("file")) {
+                String reqFile = request->getParam("file")->value();
+                if (!reqFile.startsWith("/")) reqFile = "/" + reqFile;
+                if (SD.exists(reqFile)) {
+                    request->send(SD, reqFile, "text/csv", true);
+                    return;
+                }
+            }
+            if (SD.exists("/diag_log.csv")) {
+                request->send(SD, "/diag_log.csv", "text/csv", true);
+            } else {
+                request->send(404, "text/plain", "Log file not found");
+            }
+        });
+
+        server.on("/api/logs/list", HTTP_GET, [](AsyncWebServerRequest *request){
+            String listJson = LoggingService::getInstance().getLogFilesJson();
+            request->send(200, "application/json", listJson);
+        });
+
+        // ==========================================
+        // TPS CALIBRATION API
+        // ==========================================
+        server.on("/api/tps/status", HTTP_GET, [this](AsyncWebServerRequest *request){
+            portENTER_CRITICAL(&webDataMux);
+            String copy = tpsStatusJson;
+            portEXIT_CRITICAL(&webDataMux);
+            request->send(200, "application/json", copy);
+        });
+
+        server.on("/api/tps/calibrate_zero", HTTP_POST, [this](AsyncWebServerRequest *request){
+            tpsCalibrateZeroRequested = true;
+            request->send(200, "text/plain", "Zero throttle calibration requested");
+        });
+
+        server.on("/api/tps/calibrate_wot", HTTP_POST, [this](AsyncWebServerRequest *request){
+            tpsCalibrateWotRequested = true;
+            request->send(200, "text/plain", "WOT calibration requested");
+        });
+
+        server.on("/api/tps/reset", HTTP_POST, [this](AsyncWebServerRequest *request){
+            tpsResetRequested = true;
+            request->send(200, "text/plain", "TPS calibration reset requested");
+        });
+
+        // ==========================================
+        // VIRTUAL ACCELERATION 0-60 TIMER API
+        // ==========================================
+        server.on("/api/accel", HTTP_GET, [](AsyncWebServerRequest *request){
+            request->send(200, "application/json", AccelerationTimer::getInstance().toJson());
+        });
+
+        server.on("/api/accel/arm", HTTP_POST, [](AsyncWebServerRequest *request){
+            AccelerationTimer::getInstance().arm();
+            request->send(200, "text/plain", "Acceleration timer armed");
+        });
+
+        server.on("/api/accel/reset", HTTP_POST, [](AsyncWebServerRequest *request){
+            AccelerationTimer::getInstance().reset();
+            request->send(200, "text/plain", "Acceleration timer reset");
         });
 
         // ==========================================
@@ -223,7 +285,6 @@ public:
         // MODULE STATUS API
         // ==========================================
         server.on("/api/modules", HTTP_GET, [](AsyncWebServerRequest *request){
-            // Import here to avoid circular dependency
             extern String getModuleStatusJson();
             request->send(200, "application/json", getModuleStatusJson());
         });
@@ -241,7 +302,6 @@ public:
         });
 
         server.addHandler(&ws);
-        // Note: call begin() separately after registering OTA routes
     }
 
     void begin() {
@@ -259,10 +319,8 @@ public:
         lastTPS = tps_pct;
         lastTemp = temp;
 
-        // Only broadcast if there are connected clients
         if (ws.count() == 0) return;
 
-        // Use StaticJsonDocument to avoid heap allocation (hot path, every 100ms)
         StaticJsonDocument<256> doc;
         doc["batt"] = serialized(String(batt, 2));
         doc["rpm"] = serialized(String(rpm, 0));
@@ -273,7 +331,7 @@ public:
         
         size_t len = serializeJson(doc, JsonBuffers::telemetryBuf, sizeof(JsonBuffers::telemetryBuf));
         ws.textAll(JsonBuffers::telemetryBuf, len);
-        ws.cleanupClients();  // Cleanup disconnected clients
+        ws.cleanupClients();
     }
 
     void setHealthData(float score, const String& json) {
@@ -284,6 +342,12 @@ public:
     void setFuelData(float rate, float total) {
         lastFuelRate = rate;
         lastFuelTotal = total;
+    }
+
+    void setTPSStatus(const String& json) {
+        portENTER_CRITICAL(&webDataMux);
+        tpsStatusJson = json;
+        portEXIT_CRITICAL(&webDataMux);
     }
 
     void setDTCData(const String& json) { portENTER_CRITICAL(&webDataMux); dtcJson = json; portEXIT_CRITICAL(&webDataMux); }
@@ -337,6 +401,24 @@ public:
         return val;
     }
 
+    bool isTPSCalibrateZeroRequested() {
+        bool val = tpsCalibrateZeroRequested;
+        tpsCalibrateZeroRequested = false;
+        return val;
+    }
+
+    bool isTPSCalibrateWotRequested() {
+        bool val = tpsCalibrateWotRequested;
+        tpsCalibrateWotRequested = false;
+        return val;
+    }
+
+    bool isTPSResetRequested() {
+        bool val = tpsResetRequested;
+        tpsResetRequested = false;
+        return val;
+    }
+
     String getPendingProfile() const { return pendingProfile; }
 
     AsyncWebServer& getServer() { return server; }
@@ -364,6 +446,7 @@ private:
     String wizardResultJson = "{}";
     String profileJson = "{}";
     String lastReportFile = "";
+    String tpsStatusJson = "{}";
 
     // Request flags (volatile for ISR safety on ESP32)
     volatile bool reportRequested = false;
@@ -372,6 +455,9 @@ private:
     volatile bool wizardAnalyzeRequested = false;
     volatile bool fuelResetRequested = false;
     volatile bool profileChangeRequested = false;
+    volatile bool tpsCalibrateZeroRequested = false;
+    volatile bool tpsCalibrateWotRequested = false;
+    volatile bool tpsResetRequested = false;
     int wizardSymptomId = 0;
     String pendingProfile = "";
 };

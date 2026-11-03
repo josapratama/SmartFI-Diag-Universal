@@ -45,6 +45,7 @@
         cursor: pointer;
         white-space: nowrap;
         font-size: 13px;
+        transition: 0.2s;
       }
       .nav button.active {
         color: #4fc3f7;
@@ -59,7 +60,7 @@
       }
       .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
         gap: 12px;
         margin-bottom: 15px;
       }
@@ -84,54 +85,16 @@
         font-size: 12px;
         color: #666;
       }
-      .health-ring {
-        width: 120px;
-        height: 120px;
-        margin: 0 auto 10px;
-        position: relative;
-      }
-      .health-ring .score {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 32px;
-        font-weight: bold;
-      }
-      .section {
-        background: #16213e;
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 12px;
-      }
-      .section h3 {
-        color: #4fc3f7;
-        margin-bottom: 10px;
-        font-size: 14px;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 13px;
-      }
-      td,
-      th {
-        padding: 8px;
-        border-bottom: 1px solid #0f3460;
-        text-align: left;
-      }
-      th {
-        color: #888;
-      }
       .btn {
         background: #0f3460;
         color: #4fc3f7;
         border: 1px solid #4fc3f7;
-        padding: 8px 16px;
+        padding: 10px 20px;
         border-radius: 6px;
         cursor: pointer;
         font-size: 13px;
         margin: 4px;
+        transition: 0.2s;
       }
       .btn:hover {
         background: #4fc3f7;
@@ -143,7 +106,32 @@
       }
       .btn-danger:hover {
         background: #ef5350;
-        color: white;
+        color: #fff;
+      }
+      .section {
+        background: #16213e;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+      }
+      .section h3 {
+        color: #4fc3f7;
+        font-size: 14px;
+        margin-bottom: 10px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 8px 10px;
+        text-align: left;
+        border-bottom: 1px solid #0f3460;
+        font-size: 12px;
+      }
+      th {
+        color: #888;
       }
       .status-good {
         color: #66bb6a;
@@ -154,35 +142,12 @@
       .status-bad {
         color: #ef5350;
       }
-      .wizard-list {
-        list-style: none;
-      }
-      .wizard-list li {
-        padding: 12px;
-        border-bottom: 1px solid #0f3460;
-        cursor: pointer;
-      }
-      .wizard-list li:hover {
-        background: #0f3460;
-      }
-      .wizard-result {
-        background: #0d1b2a;
-        padding: 15px;
-        border-radius: 8px;
-        margin-top: 10px;
-      }
-      .chart-container {
-        height: 200px;
-        background: #0d1b2a;
-        border-radius: 8px;
-        padding: 10px;
-        margin-top: 10px;
-      }
       #connection-status {
         width: 8px;
         height: 8px;
         border-radius: 50%;
         display: inline-block;
+        margin-right: 6px;
       }
       .connected {
         background: #66bb6a;
@@ -190,13 +155,21 @@
       .disconnected {
         background: #ef5350;
       }
+      .timer-display {
+        font-size: 52px;
+        font-family: monospace;
+        font-weight: bold;
+        color: #00e676;
+        text-align: center;
+        margin: 15px 0;
+      }
     </style>
   </head>
   <body>
     <div class="header">
       <div>
-        <h1>Smart FI Diagnostic</h1>
-        <span class="profile" id="profile-name">Loading...</span>
+        <h1>Smart FI Diagnostic Tool</h1>
+        <div class="profile" id="profile-name">Connecting...</div>
       </div>
       <div>
         <span id="connection-status" class="disconnected"></span>
@@ -207,6 +180,9 @@
     <div class="nav">
       <button class="active" onclick="showTab('live')">Live</button>
       <button onclick="showTab('health')">Health</button>
+      <button onclick="showTab('tps')">TPS Calib</button>
+      <button onclick="showTab('accel')">0-60 Timer</button>
+      <button onclick="showTab('logs')">SD Logs</button>
       <button onclick="showTab('dtc')">DTC</button>
       <button onclick="showTab('wizard')">Wizard</button>
       <button onclick="showTab('freeze')">Freeze</button>
@@ -255,6 +231,95 @@
       </button>
     </div>
 
+    <!-- TPS CALIBRATION TAB -->
+    <div class="tab" id="tab-tps">
+      <div class="section">
+        <h3>Kalibrasi Interaktif Throttle Position Sensor (TPS)</h3>
+        <p style="color:#aaa; font-size:12px; margin-bottom:15px;">
+          Sesuaikan batas voltase Idle (gas tutup) dan WOT (gas mentok) secara langsung ke memori NVS ESP32 agar pembacaan 0-100% presisi sempurna.
+        </p>
+        <div class="grid">
+          <div class="card">
+            <div class="label">Tegangan TPS Saat Ini</div>
+            <div class="value" id="tps-live-v">--</div>
+            <div class="unit">Volt</div>
+          </div>
+          <div class="card">
+            <div class="label">Bukaan Gas Terhitung</div>
+            <div class="value" id="tps-live-pct">--</div>
+            <div class="unit">%</div>
+          </div>
+          <div class="card">
+            <div class="label">Tegangan Nol (Idle)</div>
+            <div class="value" id="tps-cal-idle">--</div>
+            <div class="unit">Volt</div>
+          </div>
+          <div class="card">
+            <div class="label">Tegangan Full (WOT)</div>
+            <div class="value" id="tps-cal-wot">--</div>
+            <div class="unit">Volt</div>
+          </div>
+        </div>
+        <div id="tps-noise-alert" style="display:none; padding:10px; background:#ef535033; border:1px solid #ef5350; border-radius:6px; color:#ef5350; margin-bottom:15px; font-size:12px;">
+          <strong>Peringatan Jalur Karbon Aus:</strong> Terdeteksi lonjakan/noise tegangan abnormal pada sensor TPS!
+        </div>
+        <div>
+          <button class="btn" onclick="calibrateTPS('zero')">1. Simpan Titik Nol (Gas Tutup)</button>
+          <button class="btn" onclick="calibrateTPS('wot')">2. Simpan Titik Full (Gas Penuh)</button>
+          <button class="btn btn-danger" onclick="calibrateTPS('reset')">Reset ke Standar Pabrik</button>
+        </div>
+        <p id="tps-msg" style="color:#888; font-size:12px; margin-top:10px;"></p>
+      </div>
+    </div>
+
+    <!-- ACCELERATION 0-60 TIMER TAB -->
+    <div class="tab" id="tab-accel">
+      <div class="section">
+        <h3>Timer Akselerasi 0 - 60 km/h (Virtual Dyno / Drag Run)</h3>
+        <div class="timer-display" id="accel-timer">0.00s</div>
+        <div style="text-align:center; margin-bottom:15px;">
+          <span style="font-size:13px; color:#aaa;">Status: </span>
+          <strong id="accel-status" style="color:#4fc3f7;">IDLE</strong>
+        </div>
+        <div class="grid">
+          <div class="card">
+            <div class="label">0-60 km/h Terakhir</div>
+            <div class="value" id="accel-last">--</div>
+            <div class="unit">detik</div>
+          </div>
+          <div class="card">
+            <div class="label">Rekor Terbaik</div>
+            <div class="value" id="accel-best">--</div>
+            <div class="unit">detik</div>
+          </div>
+          <div class="card">
+            <div class="label">Kecepatan Puncak</div>
+            <div class="value" id="accel-top">--</div>
+            <div class="unit">km/h</div>
+          </div>
+        </div>
+        <div style="text-align:center;">
+          <button class="btn" onclick="armAccelTimer()">Siagakan Timer (ARM)</button>
+          <button class="btn btn-danger" onclick="resetAccelTimer()">Reset Timer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SD LOGS TAB -->
+    <div class="tab" id="tab-logs">
+      <div class="section">
+        <h3>Manajer File Log SD Card</h3>
+        <p style="color:#aaa; font-size:12px; margin-bottom:15px;">
+          Unduh rekaman riwayat sensor berkala (.CSV) untuk dianalisis lebih lanjut menggunakan Excel atau software telemetri PC.
+        </p>
+        <button class="btn" onclick="loadLogList()">Muat Ulang Daftar File</button>
+        <button class="btn" onclick="window.open('/api/logs', '_blank')">Unduh Log Aktif (/diag_log.csv)</button>
+        <div id="log-file-list" style="margin-top:15px;">
+          <p style="color:#888;">Memuat berkas...</p>
+        </div>
+      </div>
+    </div>
+
     <!-- HEALTH TAB -->
     <div class="tab" id="tab-health">
       <div class="section">
@@ -298,9 +363,9 @@
       <div class="section">
         <h3>Diagnostic Trouble Codes</h3>
         <div id="dtc-list"><p style="color: #888">No DTCs detected</p></div>
-        <div style="margin-top: 12px">
-          <button class="btn" onclick="readDTC()">Read DTC</button>
-          <button class="btn btn-danger" onclick="clearDTC()">Clear DTC</button>
+        <div style="margin-top: 15px">
+          <button class="btn" onclick="readDTC()">Baca Ulang DTC</button>
+          <button class="btn btn-danger" onclick="clearDTC()">Hapus DTC</button>
         </div>
       </div>
     </div>
@@ -309,75 +374,67 @@
     <div class="tab" id="tab-wizard">
       <div class="section">
         <h3>Pilih Gejala Motor</h3>
-        <ul class="wizard-list" id="wizard-symptoms"></ul>
+        <ul id="wizard-symptoms" style="list-style:none; cursor:pointer;"></ul>
       </div>
-      <div class="section" id="wizard-result-section" style="display: none">
-        <h3>Hasil Analisis</h3>
-        <div class="wizard-result" id="wizard-result"></div>
+      <div class="section" id="wizard-result-section" style="display:none;">
+        <h3>Hasil Analisis Otomatis</h3>
+        <div id="wizard-result"></div>
       </div>
     </div>
 
     <!-- FREEZE FRAME TAB -->
     <div class="tab" id="tab-freeze">
       <div class="section">
-        <h3>Freeze Frame Data</h3>
-        <div id="freeze-list">
-          <p style="color: #888">No freeze frames captured</p>
-        </div>
+        <h3>Rekaman Freeze Frame</h3>
+        <div id="freeze-list"><p style="color: #888">No freeze frames</p></div>
       </div>
     </div>
 
     <!-- CRANKING TAB -->
     <div class="tab" id="tab-crank">
       <div class="section">
-        <h3>Starter Analysis</h3>
-        <div id="crank-list">
-          <p style="color: #888">No cranking events recorded</p>
-        </div>
+        <h3>Riwayat Cranking & Starter</h3>
+        <div id="crank-list"><p style="color: #888">No cranking events</p></div>
       </div>
     </div>
 
     <!-- FUEL TAB -->
     <div class="tab" id="tab-fuel">
-      <div class="grid">
-        <div class="card">
-          <div class="label">Current Rate</div>
-          <div class="value" id="fuel-rate">--</div>
-          <div class="unit">cc/min</div>
+      <div class="section">
+        <h3>Estimasi Konsumsi Bahan Bakar</h3>
+        <div class="grid">
+          <div class="card">
+            <div class="label">Laju Konsumsi</div>
+            <div class="value" id="fuel-rate">--</div>
+            <div class="unit">cc/menit</div>
+          </div>
+          <div class="card">
+            <div class="label">Total Terpakai</div>
+            <div class="value" id="fuel-total">--</div>
+            <div class="unit">cc</div>
+          </div>
         </div>
-        <div class="card">
-          <div class="label">Total Used</div>
-          <div class="value" id="fuel-total">--</div>
-          <div class="unit">cc</div>
-        </div>
+        <button class="btn" onclick="resetFuel()">Reset Trip BBM</button>
       </div>
-      <button class="btn" onclick="resetFuel()">Reset Trip</button>
     </div>
 
     <!-- TREND TAB -->
     <div class="tab" id="tab-trend">
       <div class="section">
-        <h3>Sensor Trends (Last 5 min)</h3>
-        <div class="chart-container">
-          <canvas id="trend-chart"></canvas>
-        </div>
-        <p style="color: #666; font-size: 11px; margin-top: 8px">
-          Auto-updates every 5 seconds
-        </p>
+        <h3>Grafik Tren Real-Time</h3>
+        <canvas id="trend-chart" style="width:100%; height:180px;"></canvas>
       </div>
     </div>
 
     <!-- REPORT TAB -->
     <div class="tab" id="tab-report">
       <div class="section">
-        <h3>Generate Diagnostic Report</h3>
-        <p style="color: #888; margin-bottom: 12px">
-          Generate a complete HTML report with all diagnostic data.
+        <h3>Laporan Diagnostik Lengkap</h3>
+        <p style="color:#aaa; font-size:12px; margin-bottom:15px;">
+          Buat berkas laporan komprehensif berisi skor kesehatan, pembacaan sensor, kode kerusakan (DTC), dan freeze frame.
         </p>
-        <button class="btn" onclick="generateReport()">Generate Report</button>
-        <button class="btn" onclick="downloadReport()">
-          Download Last Report
-        </button>
+        <button class="btn" onclick="generateReport()">Buat Laporan Baru</button>
+        <button class="btn" onclick="downloadReport()">Unduh Laporan HTML</button>
         <p id="report-status" style="color: #888; margin-top: 8px"></p>
       </div>
     </div>
@@ -392,8 +449,7 @@
           document.getElementById("conn-text").textContent = "Live";
         };
         ws.onclose = () => {
-          document.getElementById("connection-status").className =
-            "disconnected";
+          document.getElementById("connection-status").className = "disconnected";
           document.getElementById("conn-text").textContent = "Offline";
           setTimeout(connectWS, 3000);
         };
@@ -413,15 +469,15 @@
 
       // Tab navigation
       function showTab(name) {
-        document
-          .querySelectorAll(".tab")
-          .forEach((t) => t.classList.remove("active"));
-        document
-          .querySelectorAll(".nav button")
-          .forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        document.querySelectorAll(".nav button").forEach((b) => b.classList.remove("active"));
         document.getElementById("tab-" + name).classList.add("active");
         event.target.classList.add("active");
+
         if (name === "health") loadHealth();
+        if (name === "tps") loadTPSStatus();
+        if (name === "accel") loadAccelStatus();
+        if (name === "logs") loadLogList();
         if (name === "dtc") loadDTC();
         if (name === "wizard") loadWizardSymptoms();
         if (name === "freeze") loadFreeze();
@@ -430,32 +486,89 @@
         if (name === "trend") loadTrend();
       }
 
-      // API calls
+      // TPS Calibration APIs
+      async function loadTPSStatus() {
+        try {
+          const r = await fetch("/api/tps/status");
+          const d = await r.json();
+          document.getElementById("tps-live-v").textContent = d.voltage || "--";
+          document.getElementById("tps-live-pct").textContent = d.percent || "--";
+          document.getElementById("tps-cal-idle").textContent = d.idle_v || "0.50";
+          document.getElementById("tps-cal-wot").textContent = d.wot_v || "4.20";
+          document.getElementById("tps-noise-alert").style.display = d.noise ? "block" : "none";
+        } catch (e) {}
+      }
+
+      async function calibrateTPS(action) {
+        document.getElementById("tps-msg").textContent = "Memproses kalibrasi...";
+        try {
+          const r = await fetch("/api/tps/calibrate_" + action, { method: "POST" });
+          const text = await r.text();
+          document.getElementById("tps-msg").textContent = text;
+          setTimeout(loadTPSStatus, 600);
+        } catch (e) {
+          document.getElementById("tps-msg").textContent = "Gagal menghubungi alat.";
+        }
+      }
+
+      // Acceleration Timer APIs
+      async function loadAccelStatus() {
+        try {
+          const r = await fetch("/api/accel");
+          const d = await r.json();
+          document.getElementById("accel-status").textContent = d.state || "IDLE";
+          document.getElementById("accel-timer").textContent = (d.elapsed || "0.00") + "s";
+          document.getElementById("accel-last").textContent = d.last_0_60 || "--";
+          document.getElementById("accel-best").textContent = d.best_0_60 || "--";
+          document.getElementById("accel-top").textContent = d.top_speed || "--";
+        } catch (e) {}
+      }
+
+      async function armAccelTimer() {
+        await fetch("/api/accel/arm", { method: "POST" });
+        loadAccelStatus();
+      }
+
+      async function resetAccelTimer() {
+        await fetch("/api/accel/reset", { method: "POST" });
+        loadAccelStatus();
+      }
+
+      // SD Logs API
+      async function loadLogList() {
+        const el = document.getElementById("log-file-list");
+        try {
+          const r = await fetch("/api/logs/list");
+          const files = await r.json();
+          if (!files || !files.length) {
+            el.innerHTML = '<p style="color:#888;">Tidak ada file log tersimpan di SD Card.</p>';
+            return;
+          }
+          let html = "<table><tr><th>Nama File</th><th>Ukuran</th><th>Aksi</th></tr>";
+          files.forEach((f) => {
+            html += `<tr><td>${f.name}</td><td>${f.size}</td><td><a class="btn" style="text-decoration:none;" href="/api/logs?file=${encodeURIComponent(f.path)}" target="_blank">Unduh</a></td></tr>`;
+          });
+          html += "</table>";
+          el.innerHTML = html;
+        } catch (e) {
+          el.innerHTML = '<p style="color:#ef5350;">Gagal memuat daftar log.</p>';
+        }
+      }
+
+      // Health API
       async function loadHealth() {
         const r = await fetch("/api/health");
         const d = await r.json();
         document.getElementById("health-score").textContent = d.score + "%";
         document.getElementById("health-summary").textContent = d.summary || "";
-        document.getElementById("h-batt").textContent =
-          (d.batt_score || "--") + "%";
-        document.getElementById("h-tps").textContent =
-          (d.tps_score || "--") + "%";
-        document.getElementById("h-idle").textContent =
-          (d.idle_score || "--") + "%";
-        document.getElementById("h-charge").textContent =
-          (d.charge_score || "--") + "%";
-        document.getElementById("h-thermal").textContent =
-          (d.thermal_score || "--") + "%";
-        const score = parseFloat(d.score);
-        const el = document.getElementById("health-score");
-        el.className =
-          score >= 70
-            ? "value status-good"
-            : score >= 40
-              ? "value status-warn"
-              : "value status-bad";
+        document.getElementById("h-batt").textContent = (d.batt_score || "--") + "%";
+        document.getElementById("h-tps").textContent = (d.tps_score || "--") + "%";
+        document.getElementById("h-idle").textContent = (d.idle_score || "--") + "%";
+        document.getElementById("h-charge").textContent = (d.charge_score || "--") + "%";
+        document.getElementById("h-thermal").textContent = (d.thermal_score || "--") + "%";
       }
 
+      // DTC API
       async function loadDTC() {
         const r = await fetch("/api/dtc");
         const dtcs = await r.json();
@@ -464,8 +577,7 @@
           el.innerHTML = '<p style="color:#888">No DTCs detected</p>';
           return;
         }
-        let html =
-          "<table><tr><th>Code</th><th>Description</th><th>Fix</th></tr>";
+        let html = "<table><tr><th>Code</th><th>Description</th><th>Fix</th></tr>";
         dtcs.forEach((d) => {
           html += `<tr><td>${d.code}</td><td>${d.desc}</td><td>${d.fix || "-"}</td></tr>`;
         });
@@ -477,11 +589,13 @@
         await fetch("/api/dtc");
         loadDTC();
       }
+
       async function clearDTC() {
         await fetch("/api/dtc/clear", { method: "POST" });
         setTimeout(loadDTC, 1000);
       }
 
+      // Wizard API
       async function loadWizardSymptoms() {
         const r = await fetch("/api/wizard/symptoms");
         const symptoms = await r.json();
@@ -489,7 +603,9 @@
         el.innerHTML = "";
         symptoms.forEach((s) => {
           const li = document.createElement("li");
-          li.textContent = s.name;
+          li.style.padding = "8px 0";
+          li.style.borderBottom = "1px solid #0f3460";
+          li.textContent = "• " + s.name;
           li.onclick = () => runWizard(s.id);
           el.appendChild(li);
         });
@@ -506,11 +622,11 @@
                 <p style="margin-top:4px">Severity: <span class="status-${d.severity === "critical" ? "bad" : d.severity === "warning" ? "warn" : "good"}">${d.severity}</span></p>
                 <p style="margin-top:8px"><strong>Saran:</strong> ${d.fix}</p>
                 ${d.evidence ? '<p style="margin-top:8px;color:#888">Evidence: ' + d.evidence.join(", ") + "</p>" : ""}`;
-          document.getElementById("wizard-result-section").style.display =
-            "block";
+          document.getElementById("wizard-result-section").style.display = "block";
         }, 500);
       }
 
+      // Freeze Frame API
       async function loadFreeze() {
         const r = await fetch("/api/freeze");
         const frames = await r.json();
@@ -519,8 +635,7 @@
           el.innerHTML = '<p style="color:#888">No freeze frames</p>';
           return;
         }
-        let html =
-          "<table><tr><th>Trigger</th><th>Batt</th><th>RPM</th><th>TPS</th><th>Temp</th></tr>";
+        let html = "<table><tr><th>Trigger</th><th>Batt</th><th>RPM</th><th>TPS</th><th>Temp</th></tr>";
         frames.forEach((f) => {
           html += `<tr><td>${f.trigger}</td><td>${f.batt}V</td><td>${f.rpm}</td><td>${f.tps_pct}%</td><td>${f.temp}C</td></tr>`;
         });
@@ -533,6 +648,7 @@
         alert("Freeze Frame Captured!");
       }
 
+      // Crank API
       async function loadCrank() {
         const r = await fetch("/api/crank");
         const events = await r.json();
@@ -541,8 +657,7 @@
           el.innerHTML = '<p style="color:#888">No cranking events</p>';
           return;
         }
-        let html =
-          "<table><tr><th>Duration</th><th>Min V</th><th>Drop</th><th>Result</th><th>Verdict</th></tr>";
+        let html = "<table><tr><th>Duration</th><th>Min V</th><th>Drop</th><th>Result</th><th>Verdict</th></tr>";
         events.forEach((e) => {
           html += `<tr><td>${e.duration_ms}ms</td><td>${e.min_v}V</td><td>${e.drop}V</td><td>${e.started ? "START" : "FAIL"}</td><td>${e.verdict}</td></tr>`;
         });
@@ -550,6 +665,7 @@
         el.innerHTML = html;
       }
 
+      // Fuel API
       async function loadFuel() {
         const r = await fetch("/api/fuel");
         const d = await r.json();
@@ -562,14 +678,14 @@
         loadFuel();
       }
 
+      // Trend API
       async function loadTrend() {
-        // Simple text-based trend display (Chart.js can be added later)
         const r = await fetch("/api/trend");
         const d = await r.json();
         const canvas = document.getElementById("trend-chart");
+        if (!canvas) return;
         const ctx = canvas.getContext("2d");
         if (!d.timestamps || !d.timestamps.length) return;
-        // Simple line drawing
         canvas.width = canvas.parentElement.clientWidth - 20;
         canvas.height = 180;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -587,28 +703,21 @@
         ctx.beginPath();
         data.forEach((v, i) => {
           const x = (i / data.length) * canvas.width;
-          const y =
-            canvas.height -
-            ((Number(v) - min) / range) * (canvas.height - 20) -
-            10;
+          const y = canvas.height - ((Number(v) - min) / range) * (canvas.height - 20) - 10;
           i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
         });
         ctx.stroke();
         ctx.fillStyle = color;
         ctx.font = "10px sans-serif";
-        ctx.fillText(
-          label + " (" + min.toFixed(0) + "-" + max.toFixed(0) + ")",
-          5,
-          12,
-        );
+        ctx.fillText(label + " (" + min.toFixed(0) + "-" + max.toFixed(0) + ")", 5, 12);
       }
 
+      // Report API
       async function generateReport() {
-        document.getElementById("report-status").textContent = "Generating...";
+        document.getElementById("report-status").textContent = "Sedang membuat laporan...";
         await fetch("/api/report/generate", { method: "POST" });
         setTimeout(() => {
-          document.getElementById("report-status").textContent =
-            "Report ready! Click Download.";
+          document.getElementById("report-status").textContent = "Laporan selesai dibuat! Klik Unduh Laporan.";
         }, 2000);
       }
 
@@ -616,20 +725,20 @@
         window.open("/api/report/download", "_blank");
       }
 
-      // Load profile info
+      // Profile Info
       fetch("/api/profile")
         .then((r) => r.json())
         .then((d) => {
-          document.getElementById("profile-name").textContent =
-            d.name + " | Tier " + d.tier;
+          document.getElementById("profile-name").textContent = d.name + " | Tier " + d.tier;
         })
         .catch(() => {});
 
-      // Auto-refresh trend
+      // Timers for active tabs
       setInterval(() => {
-        if (document.getElementById("tab-trend").classList.contains("active"))
-          loadTrend();
-      }, 5000);
+        if (document.getElementById("tab-trend").classList.contains("active")) loadTrend();
+        if (document.getElementById("tab-tps").classList.contains("active")) loadTPSStatus();
+        if (document.getElementById("tab-accel").classList.contains("active")) loadAccelStatus();
+      }, 500);
     </script>
   </body>
 </html>

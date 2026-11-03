@@ -8,6 +8,7 @@
 #include <SD.h>
 #include <WiFi.h>
 #include <Preferences.h>
+#include "core/fs_manager.h"
 #include "core/config_loader.h"
 #include "core/channel_manager.h"
 #include "core/capability_manager.h"
@@ -51,6 +52,7 @@
 #include "services/canbus_service.h"
 #include "services/relay_service.h"
 #include "services/module_status.h"
+#include "services/acceleration_timer.h"
 
 // ==========================================
 // SYSTEM OBJECTS
@@ -93,7 +95,7 @@ CANBusService canBusService;
 RelayService relayService;
 
 // ==========================================
-// SYSTEM STATES
+// SYSTEM STATES & THREADING
 // ==========================================
 enum SystemState {
     STATE_INIT,
@@ -106,6 +108,15 @@ enum SystemState {
 };
 
 SystemState currentState = STATE_INIT;
+TaskHandle_t klineTaskHandle = NULL;
+
+// FreeRTOS Dedicated Task on Core 0 for K-Line Protocol (Tier 4)
+void klineProtocolTask(void* pvParameters) {
+    for (;;) {
+        ProtocolManager::getInstance().update(currentProfile);
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+}
 
 // ==========================================
 // FUNCTION PROTOTYPES
@@ -129,25 +140,43 @@ void setup() {
     Serial.println("=== Smart FI Diagnostic Tool ===");
     Serial.println("System Starting...");
 
-    // 1. Initialize SD Card & Logging
-    if (!LoggingService::getInstance().init(4)) {
-        Serial.println("SD Card Failed! HALTING.");
-        while (1);
+    // 1. Determine MCU target & Default SD Card Pin
+#if defined(CONFIG_IDF_TARGET_ESP32S3) || defined(ARDUINO_ESP32S3_DEV)
+    const int defaultSDPin = 38;
+    const char* HW_CONFIG = "/configs/hardware/diagnostic_shield_v1_esp32s3.json";
+    Serial.println("[Target MCU] ESP32-S3 detected");
+#else
+    const int defaultSDPin = 4;
+    const char* HW_CONFIG = "/configs/hardware/diagnostic_shield_v1_esp32.json";
+    Serial.println("[Target MCU] Standard ESP32 detected");
+#endif
+
+    // Mount SD or fallback to SPIFFS without freezing system
+    bool sdOk = LoggingService::getInstance().init(defaultSDPin);
+    FSManager::getInstance().init(sdOk);
+
+    if (sdOk) {
+        LoggingService::getInstance().startNewSession();
+        Serial.println("[SD] SD Card initialized successfully.");
+    } else {
+        Serial.println("[SD] SD Card not mounted - using Internal SPIFFS fallback mode.");
     }
-    LoggingService::getInstance().startNewSession();
 
     // 2. Load Hardware Configuration
-    // ============================================================
-    // PILIH SALAH SATU BOARD (comment/uncomment):
-    // ============================================================
-    const char* HW_CONFIG = "/configs/hardware/diagnostic_shield_v1_esp32.json";    // ESP32 Original
-    // const char* HW_CONFIG = "/configs/hardware/diagnostic_shield_v1_esp32s3.json"; // ESP32-S3 N16R8
-    // ============================================================
-    
     if (!ConfigLoader::loadHardwareConfig(HW_CONFIG, hwConfig)) {
         Serial.println("Failed to load Hardware Config! HALTING.");
         Serial.println("File: " + String(HW_CONFIG));
         while (1);
+    }
+
+    // If hardware config specifies a different SD CS pin and SD wasn't ready, retry with configured CS
+    if (!sdOk && hwConfig.sd_cs_pin > 0 && hwConfig.sd_cs_pin != defaultSDPin) {
+        sdOk = LoggingService::getInstance().init(hwConfig.sd_cs_pin);
+        FSManager::getInstance().setSDAvailable(sdOk);
+        if (sdOk) {
+            LoggingService::getInstance().startNewSession();
+            Serial.printf("[SD] SD Card initialized with configured CS pin %d.\n", hwConfig.sd_cs_pin);
+        }
     }
     HardwareRegistry::getInstance().setConfig(hwConfig);
 
@@ -209,17 +238,35 @@ void setup() {
     ProtocolManager::getInstance().registerPlugin("suzuki", 
         std::make_shared<SuzukiSDSPlugin>(16, 17));
 
-    // 7. Initialize DTC Database (from SD or built-in)
+    // 7. Initialize DTC Database (from SD/SPIFFS or built-in)
     DTCDatabase::getInstance().load(currentProfile.brand);
 
-    // 8. Initialize Fuel Estimator
+    // 8. Initialize Fuel Estimator & Acceleration Timer
     fuelEstimator.init();
+    AccelerationTimer::getInstance().init();
 
-    // 9. Initialize WiFi & Web Dashboard
+    // 9. Initialize WiFi (Dual Mode: SoftAP + optional Workshop STA)
+    Preferences wifiPrefs;
+    String staSSID = "";
+    String staPass = "";
+    if (wifiPrefs.begin("wifi_cfg", true)) {
+        staSSID = wifiPrefs.getString("ssid", "");
+        staPass = wifiPrefs.getString("pass", "");
+        wifiPrefs.end();
+    }
+
+    if (!staSSID.isEmpty()) {
+        WiFi.mode(WIFI_AP_STA);
+        WiFi.begin(staSSID.c_str(), staPass.c_str());
+        Serial.printf("[WiFi] Connecting to Workshop STA: %s...\n", staSSID.c_str());
+    } else {
+        WiFi.mode(WIFI_AP);
+    }
+
     WiFi.softAP(hwConfig.project_name.c_str(), "smartfi123");
     Serial.println("WiFi AP: " + hwConfig.project_name);
     Serial.println("Password: smartfi123");
-    Serial.println("Dashboard: http://192.168.4.1");
+    Serial.println("Dashboard: http://" + WiFi.softAPIP().toString());
     webServer.init(hwConfig);
 
     // OTA Firmware Update (register before server.begin)
@@ -291,40 +338,43 @@ void setup() {
     auto& modStatus = ModuleStatusTracker::getInstance();
     
     // Core modules (always expected)
-    modStatus.setStatus("SD Card", MOD_CONNECTED, "OK");
+    modStatus.setStatus("SD Card", sdOk ? MOD_CONNECTED : MOD_WARNING, sdOk ? "OK" : "SPIFFS Fallback");
     modStatus.setStatus("OLED", MOD_CONNECTED, "128x64");
-    modStatus.setStatus("WiFi", MOD_CONNECTED, "192.168.4.1");
+    modStatus.setStatus("WiFi", MOD_CONNECTED, WiFi.softAPIP().toString().c_str());
     
     // Optional modules
     if (hwConfig.optional.gps.enabled) {
         modStatus.setStatus("GPS", gpsService.isAvailable() ? MOD_CONNECTED : MOD_NOT_DETECTED,
-            gpsService.isAvailable() ? "OK" : "Modul tidak merespon. Cek kabel RX.");
-    } else {
-        modStatus.setStatus("GPS", MOD_DISABLED, "Set enabled=true di JSON");
+                           gpsService.isAvailable() ? "Connected" : "No Signal");
     }
-
     if (hwConfig.optional.canbus.enabled) {
         modStatus.setStatus("CAN Bus", canBusService.isAvailable() ? MOD_CONNECTED : MOD_NOT_DETECTED,
-            canBusService.isAvailable() ? "MCP2515 OK" : "MCP2515 tidak terdeteksi. Cek SPI & CS pin.");
-    } else {
-        modStatus.setStatus("CAN Bus", MOD_DISABLED, "Set enabled=true di JSON");
+                           canBusService.isAvailable() ? "Ready" : "MCP2515 Not Found");
     }
-
     if (hwConfig.optional.relay.enabled) {
-        modStatus.setStatus("Relay", relayService.isAvailable() ? MOD_CONNECTED : MOD_NOT_DETECTED, "");
-    } else {
-        modStatus.setStatus("Relay", MOD_DISABLED, "Set enabled=true di JSON");
+        modStatus.setStatus("Relays", MOD_CONNECTED, "2 Channels Ready");
     }
 
-    modStatus.setStatus("Bluetooth", MOD_CONNECTED, "");
+    // Protocol status
     modStatus.setStatus("K-Line ECU", MOD_DISABLED, "Menunggu koneksi ECU");
+
+    // 22. Start FreeRTOS Background Task on Core 0 for K-Line Protocol
+    xTaskCreatePinnedToCore(
+        klineProtocolTask,
+        "KLineTask",
+        4096,
+        NULL,
+        1,
+        &klineTaskHandle,
+        0 // Pin to Core 0
+    );
 
     // Print module summary
     Serial.println("[Modules] " + modStatus.getOLEDSummary());
     if (modStatus.hasWarnings()) {
         Serial.println("[Modules] PERINGATAN:");
         Serial.print(modStatus.getNotifications());
-        buzzer.play(BUZZ_DOUBLE_BEEP); // Warning beep for module issues
+        buzzer.play(BUZZ_DOUBLE_BEEP);
     }
 
     // Save selected profile to NVS for next boot
@@ -364,9 +414,6 @@ void loop() {
         handleLogging();
         handleAdvancedFeatures();
         handleWebRequests();
-        
-        // Update Protocol Manager for Tier 4 (ECU communication)
-        ProtocolManager::getInstance().update(currentProfile);
         
         lastSlowTask = now;
     }
@@ -426,6 +473,16 @@ void updateServices() {
 
     // GPS (optional)
     gpsService.update();
+
+    // Virtual Acceleration 0-60 km/h Timer
+    float speedKmH = 0.0f;
+    if (gpsService.isAvailable() && gpsService.isFixed()) {
+        speedKmH = gpsService.getSpeed();
+    } else if (rpmService.getRPM() > 0) {
+        // Estimate vehicle speed based on RPM in top gear if no GPS (~45 RPM per km/h on Beat)
+        speedKmH = (float)rpmService.getRPM() / 45.0f;
+    }
+    AccelerationTimer::getInstance().update(speedKmH, tpsService.getPercent());
 
     // CAN Bus (optional)
     canBusService.update();
@@ -501,7 +558,6 @@ void handleAdvancedFeatures() {
     // Update web server with health data (every 500ms to reduce heap pressure)
     static uint32_t lastHealthUpdate = 0;
     if (millis() - lastHealthUpdate >= 500) {
-        // Use StaticJsonDocument to avoid heap fragmentation
         StaticJsonDocument<384> healthDoc;
         healthDoc["score"] = serialized(String(healthReport.overall_score, 1));
         healthDoc["summary"] = healthReport.summary;
@@ -511,7 +567,6 @@ void handleAdvancedFeatures() {
         healthDoc["charge_score"] = serialized(String(healthReport.charging_score, 0));
         healthDoc["thermal_score"] = serialized(String(healthReport.thermal_score, 0));
         
-        // Serialize to static buffer then copy to String (one allocation)
         size_t len = serializeJson(healthDoc, JsonBuffers::healthBuf, sizeof(JsonBuffers::healthBuf));
         String healthJson(JsonBuffers::healthBuf, len);
         webServer.setHealthData(healthReport.overall_score, healthJson);
@@ -540,7 +595,6 @@ void handleAdvancedFeatures() {
     static size_t lastCrankCount = 0;
     const auto& crankEvents = crankAnalyzer.getEvents();
     if (crankEvents.size() != lastCrankCount) {
-        // Use StaticJsonDocument - max 10 events * ~150 bytes = ~1500 bytes
         StaticJsonDocument<2048> crankDoc;
         JsonArray arr = crankDoc.to<JsonArray>();
         for (const auto& ev : crankEvents) {
@@ -669,6 +723,36 @@ void handleWebRequests() {
     if (webServer.isFuelResetRequested()) {
         fuelEstimator.resetTrip();
     }
+
+    // TPS Interactive Calibration Handlers
+    if (webServer.isTPSCalibrateZeroRequested()) {
+        bool ok = tpsService.calibrateZero();
+        buzzer.play(ok ? BUZZ_CONFIRM : BUZZ_DOUBLE_BEEP);
+    }
+    if (webServer.isTPSCalibrateWotRequested()) {
+        bool ok = tpsService.calibrateWOT();
+        buzzer.play(ok ? BUZZ_CONFIRM : BUZZ_DOUBLE_BEEP);
+    }
+    if (webServer.isTPSResetRequested()) {
+        tpsService.resetCalibration();
+        buzzer.play(BUZZ_SHORT_BEEP);
+    }
+
+    // Periodic TPS Status Update for Web Dashboard (every 500ms)
+    static uint32_t lastTPSWebUpdate = 0;
+    if (millis() - lastTPSWebUpdate >= 500) {
+        StaticJsonDocument<192> tpsDoc;
+        tpsDoc["voltage"] = serialized(String(tpsService.getVoltage(), 3));
+        tpsDoc["percent"] = serialized(String(tpsService.getPercent(), 1));
+        tpsDoc["calibrated"] = tpsService.isCustomCalibrated();
+        tpsDoc["idle_v"] = serialized(String(tpsService.getIdleCalibration(), 3));
+        tpsDoc["wot_v"] = serialized(String(tpsService.getWOTCalibration(), 3));
+        tpsDoc["noise"] = tpsService.hasNoiseOrFault();
+        String tpsJson;
+        serializeJson(tpsDoc, tpsJson);
+        webServer.setTPSStatus(tpsJson);
+        lastTPSWebUpdate = millis();
+    }
 }
 
 void broadcastTelemetry() {
@@ -697,7 +781,6 @@ void handleLogging() {
 void handleBluetooth() {
     if (!btService.isConnected()) return;
 
-    // Send telemetry
     HealthInput hInput;
     hInput.battery_v = batteryService.getVoltage();
     hInput.rpm = rpmService.getRPM();

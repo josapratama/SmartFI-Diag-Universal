@@ -24,8 +24,8 @@ void DiagEngine::analyzeBattery(const VehicleProfile& profile, float battery_v) 
 }
 
 void DiagEngine::analyzeTPS(const VehicleProfile& profile, float tps_v) {
-    // Detect out of range
-    if (tps_v < profile.thresholds.tps_v_idle - 0.2f || tps_v > profile.thresholds.tps_v_full + 0.3f) {
+    // Detect out of range with safety margin
+    if (tps_v < profile.thresholds.tps_v_idle - 0.25f || tps_v > profile.thresholds.tps_v_full + 0.35f) {
         status.tps_out_of_range = true;
     } else {
         status.tps_out_of_range = false;
@@ -48,8 +48,13 @@ void DiagEngine::analyzeIdle(const VehicleProfile& profile, float rpm, float tem
 }
 
 void DiagEngine::analyzeCharging(const VehicleProfile& profile, float battery_v, float rpm) {
+    // IMPROVEMENT #3: Realistic automotive motorcycle charging curve
+    // At high RPM (>2000 RPM), regulator/rectifier should produce 12.8V - 15.0V.
     if (rpm > 2000.0f) {
-        if (battery_v < profile.thresholds.batt_v_idle_min || battery_v > profile.thresholds.batt_v_idle_max) {
+        const float CHARGING_V_MIN = 12.8f;
+        const float CHARGING_V_MAX = 15.2f; // Overvoltage threshold (faulty regulator)
+        
+        if (battery_v < CHARGING_V_MIN || battery_v > CHARGING_V_MAX) {
             status.charging_failure = true;
         } else {
             status.charging_failure = false;
@@ -58,24 +63,4 @@ void DiagEngine::analyzeCharging(const VehicleProfile& profile, float battery_v,
         // Can't assess charging at low RPM - reset flag
         status.charging_failure = false;
     }
-}
-
-const char* DiagEngine::getSuggestedCause() {
-    // Rule Engine for Symptom-Based Guided Diagnosis
-    if (currentSymptom == SYMPTOM_ROUGH_START) {
-        if (status.low_battery) return "Aki lemah (Battery weak)";
-        if (status.ignition_missing) return "Pengapian hilang (Ignition failure)";
-        return "Cek busi atau tekanan fuel pump (Check plug or fuel pressure)";
-    }
-    
-    if (currentSymptom == SYMPTOM_LOSS_OF_IDLE || currentSymptom == SYMPTOM_STALL_ON_OFF_THROTTLE) {
-        if (status.tps_out_of_range) return "TPS error/kalibrasi (TPS calibration error)";
-        if (status.idle_unstable) return "Cek IACV/TB kotor atau setelan idle (Check IACV/TB sync)";
-        return "Cek kompresi/klep atau kebocoran intake (Check compression/intake leak)";
-    }
-    
-    if (status.charging_failure) return "Masalah pengisian/kiprok (Charging/Regulator fault)";
-    if (status.mil_error_detected) return "Cek kode MIL/DTC (Check MIL code)";
-    
-    return "Status Normal - Pantau live data (Normal - Monitor live data)";
 }
