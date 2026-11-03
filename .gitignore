@@ -1,23 +1,28 @@
-# PlatformIO
-.pio
-.pioenvs
-.piolibdeps
+# PlatformIO & Build Caches
+.pio/
+.pioenvs/
+.piolibdeps/
+.platformio/
+.cache/
+build/
 .clang_complete
 .gcc-flags.json
 .vscode/
+.idea/
 
-# Build outputs
-.pio/build/
+# Binaries & Firmware Outputs
 *.elf
 *.bin
+*.hex
 *.map
 
-# OS files
+# Operating System Files
 .DS_Store
 Thumbs.db
+Desktop.ini
+*.swp
+*~
 
-# Project specific
-.platformio/
-.cache/
+# Runtime Logs
 diag_log.csv
 *.log

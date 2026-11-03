@@ -162,3 +162,4 @@ private:
 };
 
 #endif // ACCELERATION_TIMER_H
+
