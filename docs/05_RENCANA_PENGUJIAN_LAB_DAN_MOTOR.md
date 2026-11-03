@@ -97,3 +97,4 @@ Prosedur pengujian komprehensif dari meja kerja (*bench test*), kalibrasi tegang
 3. **Uji Mesin Hidup (Engine Running):**
    - Mesin motor menyala stasioner: periksa RPM idle ($\approx 1500 - 1700\text{ RPM}$).
    - Periksa kenaikan voltase aki saat mesin digas: kiprok yang sehat akan menaikkan tegangan ke $13.8 - 14.8\text{V}$.
+

@@ -55,3 +55,4 @@ Gejala interferensi busi: Layar OLED tiba-tiba menjadi buram/layar putih (*freez
    - Dilarang keras melakukan penyolderan, pengetesan percikan busi, atau penyambungan kabel di dekat tangki bensin terbuka, saluran injektor bocor, atau wadah kuras bahan bakar.
 2. **Bahaya Gas Hidrogen Aki:**
    - Aki basah yang sedang diisi daya (*fast charging*) mengeluarkan gas hidrogen yang mudah meledak. Jangan memicu percikan listrik di atas permukaan aki.
+

@@ -133,3 +133,4 @@ motor/
    === System Ready ===
    ```
 4. Layar OLED akan menyala menampilkan logo pembuka dan berpindah ke layar pemantauan sensor real-time.
+

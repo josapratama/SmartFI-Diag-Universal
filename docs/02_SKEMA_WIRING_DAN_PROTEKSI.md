@@ -221,3 +221,4 @@ Untuk kemudahan pemasangan soket kabel antara unit scanner dan motor, gunakan st
                                       [8] Sinyal K-Line ECU
                                       [9] Sinyal Starter
 ```
+

@@ -155,3 +155,4 @@ Misal Anda ingin menambahkan profil motor **Yamaha NMAX 155 (2020)**:
    ```
 3. Salin file tersebut ke folder `/configs/vehicles/` di MicroSD atau partisi SPIFFS.
 4. Nyalakan alat. Menu pemilih profil OLED akan otomatis mendeteksi profil baru tersebut tanpa perlu melakukan kompilasi ulang firmware (*Zero-Recompile Architecture*)!
+

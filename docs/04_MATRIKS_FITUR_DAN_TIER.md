@@ -88,3 +88,4 @@ Di dalam modul `DiagEngine`, sistem menggabungkan pembacaan multi-sensor untuk m
 - **Gejala: "Mesin Brebet di Putaran Tinggi"**
   - *Jika:* RPM naik $>5000$ namun grafik TPS tiba-tiba melonjak liar / ada noise $\rightarrow$ **Diagnosa:** Jalur resistif karbon TPS aus / kotor.
   - *Jika:* TPS normal tapi tegangan aki melonjak $>15.5\text{V}$ $\rightarrow$ **Diagnosa:** Kiprok (*regulator rectifier*) jebol overcharging.
+

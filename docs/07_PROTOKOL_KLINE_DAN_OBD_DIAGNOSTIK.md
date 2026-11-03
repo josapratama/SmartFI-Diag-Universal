@@ -143,3 +143,4 @@ xTaskCreatePinnedToCore(
 );
 ```
 Dengan pemisahan ini, loop utama di **Core 1** tetap berjalan mulus setiap $10\text{ ms}$ tanpa jitter.
+

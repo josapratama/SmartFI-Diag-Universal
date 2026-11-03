@@ -110,3 +110,4 @@ Fitur ini berfungsi sebagai instrumen pengukur performa mesin (seperti alat *Dra
    - Timer otomatis menghitung waktu dengan presisi dua angka di belakang koma ($0.01\text{ detik}$).
 5. Ketika speedometer menyentuh $60\text{ km/jam}$, timer berhenti seketika.
 6. Hasil waktu tempuh ditampilkan di layar (contoh: `7.42s`), dan jika waktu tersebut mengalahkan rekor sebelumnya, sistem otomatis memperbarui nilai **"Rekor Terbaik" (*Personal Best*)** ke dalam memori Flash!
+
