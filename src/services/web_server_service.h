@@ -16,6 +16,7 @@
 #include "core/memory_manager.h"
 #include "logging_service.h"
 #include "acceleration_timer.h"
+#include "actuator_service.h"
 
 // Mutex for protecting shared String data between async web handlers and main loop
 static portMUX_TYPE webDataMux = portMUX_INITIALIZER_UNLOCKED;
@@ -266,6 +267,58 @@ public:
             request->send(200, "text/plain", "Acceleration timer reset");
         });
 
+        server.on("/api/dyno/config", HTTP_POST, [](AsyncWebServerRequest *request){
+            float bikeKg = 125.0f;
+            float riderKg = 70.0f;
+            if (request->hasParam("bike_kg")) bikeKg = request->getParam("bike_kg")->value().toFloat();
+            if (request->hasParam("rider_kg")) riderKg = request->getParam("rider_kg")->value().toFloat();
+            AccelerationTimer::getInstance().setWeights(bikeKg, riderKg);
+            request->send(200, "application/json", AccelerationTimer::getInstance().toJson());
+        });
+
+        // ==========================================
+        // ACTUATOR ACTIVE TEST API
+        // ==========================================
+        server.on("/api/actuator/status", HTTP_GET, [](AsyncWebServerRequest *request){
+            request->send(200, "application/json", ActuatorService::getInstance().toJson());
+        });
+
+        server.on("/api/actuator/test", HTTP_POST, [this](AsyncWebServerRequest *request){
+            int type = 0;
+            uint32_t duration = 5000;
+            if (request->hasParam("type")) type = request->getParam("type")->value().toInt();
+            if (request->hasParam("duration")) duration = request->getParam("duration")->value().toInt();
+            
+            bool ok = ActuatorService::getInstance().startTest((ActuatorType)type, duration, lastRPM);
+            if (ok) {
+                request->send(200, "application/json", ActuatorService::getInstance().toJson());
+            } else {
+                request->send(400, "application/json", ActuatorService::getInstance().toJson());
+            }
+        });
+
+        server.on("/api/actuator/stop", HTTP_POST, [](AsyncWebServerRequest *request){
+            ActuatorService::getInstance().stopTest();
+            request->send(200, "application/json", ActuatorService::getInstance().toJson());
+        });
+
+        // ==========================================
+        // OSCILLOSCOPE & CRANKING WAVEFORMS
+        // ==========================================
+        server.on("/api/tps/waveform", HTTP_GET, [this](AsyncWebServerRequest *request){
+            portENTER_CRITICAL(&webDataMux);
+            String copy = tpsWaveformJson;
+            portEXIT_CRITICAL(&webDataMux);
+            request->send(200, "application/json", copy);
+        });
+
+        server.on("/api/crank/waveform", HTTP_GET, [this](AsyncWebServerRequest *request){
+            portENTER_CRITICAL(&webDataMux);
+            String copy = crankWaveformJson;
+            portEXIT_CRITICAL(&webDataMux);
+            request->send(200, "application/json", copy);
+        });
+
         // ==========================================
         // SYSTEM INFO / MEMORY API
         // ==========================================
@@ -347,6 +400,18 @@ public:
     void setTPSStatus(const String& json) {
         portENTER_CRITICAL(&webDataMux);
         tpsStatusJson = json;
+        portEXIT_CRITICAL(&webDataMux);
+    }
+
+    void setTpsWaveform(const String& json) {
+        portENTER_CRITICAL(&webDataMux);
+        tpsWaveformJson = json;
+        portEXIT_CRITICAL(&webDataMux);
+    }
+
+    void setCrankWaveform(const String& json) {
+        portENTER_CRITICAL(&webDataMux);
+        crankWaveformJson = json;
         portEXIT_CRITICAL(&webDataMux);
     }
 
@@ -447,6 +512,8 @@ private:
     String profileJson = "{}";
     String lastReportFile = "";
     String tpsStatusJson = "{}";
+    String tpsWaveformJson = "{\"samples\":[],\"glitches\":0}";
+    String crankWaveformJson = "{\"waveform\":[]}";
 
     // Request flags (volatile for ISR safety on ESP32)
     volatile bool reportRequested = false;

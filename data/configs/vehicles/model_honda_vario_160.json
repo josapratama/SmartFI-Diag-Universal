@@ -1,0 +1,36 @@
+{
+  "id": 115,
+  "name": "Honda Vario 160 eSP+ 4V (2022-2026)",
+  "brand": "honda",
+  "family": "scooter",
+  "model": "vario_160",
+  "parent_profile": "family_honda_scooter",
+  "tier": 4,
+  "capabilities": { 
+    "has_ecu_protocol": true, 
+    "has_fuel_pump_monitor": true,
+    "has_tps": true,
+    "has_ect": true
+  },
+  "thresholds": {
+    "rpm_idle": [1600, 1800],
+    "tps_v": [0.48, 4.35],
+    "temp_v_overheat": 3.6,
+    "batt_v_idle": [13.2, 14.8]
+  },
+  "startup_thresholds": { 
+    "batt_crank_min": 10.2, 
+    "crank_duration_max": 2500 
+  },
+  "brand_extra": {
+    "chassis_code": "K2SN",
+    "engine_type": "eSP+ 156.9cc 4-Valve SOHC Liquid-Cooled",
+    "power_hp": 15.4,
+    "torque_nm": 13.8,
+    "acg_starter": true,
+    "iss_equipped": true,
+    "ecu_baud_rate": 10400,
+    "protocol": "HONDA_KLINE_HDS"
+  }
+}
+

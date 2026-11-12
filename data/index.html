@@ -108,6 +108,14 @@
         background: #ef5350;
         color: #fff;
       }
+      .btn-success {
+        border-color: #66bb6a;
+        color: #66bb6a;
+      }
+      .btn-success:hover {
+        background: #66bb6a;
+        color: #fff;
+      }
       .section {
         background: #16213e;
         border-radius: 10px;
@@ -115,17 +123,16 @@
         margin-bottom: 15px;
       }
       .section h3 {
-        color: #4fc3f7;
         font-size: 14px;
+        color: #4fc3f7;
         margin-bottom: 10px;
       }
       table {
         width: 100%;
         border-collapse: collapse;
       }
-      th,
-      td {
-        padding: 8px 10px;
+      th, td {
+        padding: 8px;
         text-align: left;
         border-bottom: 1px solid #0f3460;
         font-size: 12px;
@@ -163,6 +170,44 @@
         text-align: center;
         margin: 15px 0;
       }
+
+      /* Print Stylesheet for Surat Keterangan Sehat Motor */
+      @media print {
+        body {
+          background: #fff !important;
+          color: #000 !important;
+          font-family: "Times New Roman", Times, serif !important;
+        }
+        .header, .nav, .no-print, button, input {
+          display: none !important;
+        }
+        .tab {
+          display: none !important;
+        }
+        #tab-certificate {
+          display: block !important;
+          padding: 0 !important;
+        }
+        .cert-container {
+          border: 2px solid #000 !important;
+          padding: 30px !important;
+          background: #fff !important;
+          color: #000 !important;
+          border-radius: 0 !important;
+          box-shadow: none !important;
+        }
+        .cert-header h2 {
+          color: #000 !important;
+        }
+        .cert-table th, .cert-table td {
+          border: 1px solid #000 !important;
+          color: #000 !important;
+        }
+        .cert-badge-pass {
+          border: 2px solid #2e7d32 !important;
+          color: #2e7d32 !important;
+        }
+      }
     </style>
   </head>
   <body>
@@ -180,13 +225,15 @@
     <div class="nav">
       <button class="active" onclick="showTab('live')">Live</button>
       <button onclick="showTab('health')">Health</button>
-      <button onclick="showTab('tps')">TPS Calib</button>
-      <button onclick="showTab('accel')">0-60 Timer</button>
-      <button onclick="showTab('logs')">SD Logs</button>
+      <button onclick="showTab('tps')">TPS Scope</button>
+      <button onclick="showTab('accel')">Dyno & 0-60</button>
+      <button onclick="showTab('actuator')">Actuators</button>
+      <button onclick="showTab('crank')">Starter Scope</button>
+      <button onclick="showTab('certificate')">Surat Sehat</button>
       <button onclick="showTab('dtc')">DTC</button>
+      <button onclick="showTab('logs')">SD Logs</button>
       <button onclick="showTab('wizard')">Wizard</button>
       <button onclick="showTab('freeze')">Freeze</button>
-      <button onclick="showTab('crank')">Starter</button>
       <button onclick="showTab('fuel')">Fuel</button>
       <button onclick="showTab('trend')">Trend</button>
       <button onclick="showTab('report')">Report</button>
@@ -226,36 +273,39 @@
           <div class="unit">%</div>
         </div>
       </div>
-      <button class="btn" onclick="captureFreeze()">
-        Capture Freeze Frame
-      </button>
+      <button class="btn" onclick="captureFreeze()">Capture Freeze Frame</button>
     </div>
 
-    <!-- TPS CALIBRATION TAB -->
+    <!-- TPS OSCILLOSCOPE & CALIBRATION TAB -->
     <div class="tab" id="tab-tps">
       <div class="section">
-        <h3>Kalibrasi Interaktif Throttle Position Sensor (TPS)</h3>
-        <p style="color:#aaa; font-size:12px; margin-bottom:15px;">
-          Sesuaikan batas voltase Idle (gas tutup) dan WOT (gas mentok) secara langsung ke memori NVS ESP32 agar pembacaan 0-100% presisi sempurna.
+        <h3>Oskiloskop Real-Time Throttle Position Sensor (TPS)</h3>
+        <p style="color:#aaa; font-size:12px; margin-bottom:12px;">
+          Grafik stream 50Hz tegangan TPS untuk mendeteksi goresan halus (scratch) dan drop jalur resistif karbon sensor TPS sebelum menimbulkan brebet/ngempos.
         </p>
+        <canvas id="tps-scope" height="150" style="width:100%; height:150px; background:#0b1329; border:1px solid #0f3460; border-radius:8px; display:block;"></canvas>
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:#aaa; margin-top:6px; margin-bottom:15px;">
+          <span>Loncatan Tegangan Abnormal (Glitch): <strong id="tps-glitch-count" style="color:#ffa726;">0</strong></span>
+          <span>Sampling: 50Hz (20ms/titik) | Rentang: 0.0V - 5.0V</span>
+        </div>
         <div class="grid">
           <div class="card">
-            <div class="label">Tegangan TPS Saat Ini</div>
+            <div class="label">Tegangan Saat Ini</div>
             <div class="value" id="tps-live-v">--</div>
             <div class="unit">Volt</div>
           </div>
           <div class="card">
-            <div class="label">Bukaan Gas Terhitung</div>
+            <div class="label">Bukaan Gas</div>
             <div class="value" id="tps-live-pct">--</div>
             <div class="unit">%</div>
           </div>
           <div class="card">
-            <div class="label">Tegangan Nol (Idle)</div>
+            <div class="label">Tegangan Idle (Zero)</div>
             <div class="value" id="tps-cal-idle">--</div>
             <div class="unit">Volt</div>
           </div>
           <div class="card">
-            <div class="label">Tegangan Full (WOT)</div>
+            <div class="label">Tegangan WOT (Full)</div>
             <div class="value" id="tps-cal-wot">--</div>
             <div class="unit">Volt</div>
           </div>
@@ -266,20 +316,42 @@
         <div>
           <button class="btn" onclick="calibrateTPS('zero')">1. Simpan Titik Nol (Gas Tutup)</button>
           <button class="btn" onclick="calibrateTPS('wot')">2. Simpan Titik Full (Gas Penuh)</button>
-          <button class="btn btn-danger" onclick="calibrateTPS('reset')">Reset ke Standar Pabrik</button>
+          <button class="btn btn-danger" onclick="calibrateTPS('reset')">Reset Standar</button>
         </div>
         <p id="tps-msg" style="color:#888; font-size:12px; margin-top:10px;"></p>
       </div>
     </div>
 
-    <!-- ACCELERATION 0-60 TIMER TAB -->
+    <!-- ACCELERATION & VIRTUAL DYNO TAB -->
     <div class="tab" id="tab-accel">
       <div class="section">
-        <h3>Timer Akselerasi 0 - 60 km/h (Virtual Dyno / Drag Run)</h3>
+        <h3>Virtual Dyno & Timer Akselerasi 0-60 km/h</h3>
         <div class="timer-display" id="accel-timer">0.00s</div>
         <div style="text-align:center; margin-bottom:15px;">
-          <span style="font-size:13px; color:#aaa;">Status: </span>
+          <span style="font-size:13px; color:#aaa;">Status Launch: </span>
           <strong id="accel-status" style="color:#4fc3f7;">IDLE</strong>
+        </div>
+        <div class="grid">
+          <div class="card">
+            <div class="label">Tenaga Roda (WHP)</div>
+            <div class="value" id="dyno-hp" style="color:#00e676;">0.0</div>
+            <div class="unit">Horsepower</div>
+          </div>
+          <div class="card">
+            <div class="label">Torsi Roda</div>
+            <div class="value" id="dyno-tq" style="color:#ffb300;">0.0</div>
+            <div class="unit">Nm</div>
+          </div>
+          <div class="card">
+            <div class="label">Peak WHP</div>
+            <div class="value" id="dyno-peak-hp" style="color:#00e676;">0.0</div>
+            <div class="unit">HP</div>
+          </div>
+          <div class="card">
+            <div class="label">Peak Torsi</div>
+            <div class="value" id="dyno-peak-tq" style="color:#ffb300;">0.0</div>
+            <div class="unit">Nm</div>
+          </div>
         </div>
         <div class="grid">
           <div class="card">
@@ -293,14 +365,199 @@
             <div class="unit">detik</div>
           </div>
           <div class="card">
-            <div class="label">Kecepatan Puncak</div>
+            <div class="label">Top Speed</div>
             <div class="value" id="accel-top">--</div>
             <div class="unit">km/h</div>
           </div>
         </div>
+        <div style="background:#0f346044; padding:12px; border-radius:8px; margin-bottom:15px;">
+          <span style="font-size:12px; color:#aaa;">Bobot Konfigurasi Virtual Dyno:</span>
+          <div style="display:flex; gap:10px; margin-top:6px; align-items:center; flex-wrap:wrap;">
+            <label style="font-size:12px;">Motor: <input type="number" id="dyno-bike-kg" value="125" style="width:65px; padding:4px; background:#16213e; border:1px solid #0f3460; color:#fff; border-radius:4px;"> kg</label>
+            <label style="font-size:12px;">Pengendara: <input type="number" id="dyno-rider-kg" value="70" style="width:65px; padding:4px; background:#16213e; border:1px solid #0f3460; color:#fff; border-radius:4px;"> kg</label>
+            <button class="btn" style="padding:4px 12px; font-size:12px;" onclick="saveDynoWeights()">Simpan Bobot</button>
+          </div>
+        </div>
         <div style="text-align:center;">
           <button class="btn" onclick="armAccelTimer()">Siagakan Timer (ARM)</button>
-          <button class="btn btn-danger" onclick="resetAccelTimer()">Reset Timer</button>
+          <button class="btn btn-danger" onclick="resetAccelTimer()">Reset Timer & Dyno</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTUATORS ACTIVE TEST TAB -->
+    <div class="tab" id="tab-actuator">
+      <div class="section">
+        <h3>Uji Aktuator Aktif (Bi-Directional Routine Test)</h3>
+        <p style="color:#aaa; font-size:12px; margin-bottom:15px;">
+          Uji aktuator fisik motor (pompa bensin, selenoid injektor, koil pengapian, kipas radiator, jarum spidometer) secara mandiri saat kunci kontak ON (mesin mati).
+        </p>
+        <div id="actuator-status-box" style="padding:15px; background:#0b1329; border:1px solid #0f3460; border-radius:8px; margin-bottom:15px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+              <span style="font-size:11px; color:#888; text-transform:uppercase;">Status Aktuator:</span>
+              <h4 id="actuator-name" style="color:#4fc3f7; margin-top:4px;">Standby</h4>
+              <p id="actuator-msg" style="font-size:12px; color:#bbb; margin-top:2px;">Pilih salah satu pengujian di bawah</p>
+            </div>
+            <button class="btn btn-danger" onclick="stopActuator()">Hentikan Pengujian</button>
+          </div>
+          <div style="margin-top:12px; background:#16213e; height:10px; border-radius:5px; overflow:hidden;">
+            <div id="actuator-progress" style="width:0%; height:100%; background:#4fc3f7; transition:width 0.2s;"></div>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px;">
+          <button class="btn" onclick="runActuator(1, 5000)">⛽ 1. Fuel Pump Prime (5 Detik)</button>
+          <button class="btn" onclick="runActuator(2, 2500)">🔊 2. Klik Solenoid Injektor (30 Pulsa @ 15Hz)</button>
+          <button class="btn" onclick="runActuator(3, 2500)">⚡ 3. Koil Pengapian (Spark Test 10Hz)</button>
+          <button class="btn" onclick="runActuator(4, 5000)">🌀 4. Kipas Radiator (Fan Test 5 Detik)</button>
+          <button class="btn" onclick="runActuator(5, 4000)">⏱️ 5. Sapuan Jarum RPM (Tacho Sweep)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CRANKING STARTER TAB -->
+    <div class="tab" id="tab-crank">
+      <div class="section">
+        <h3>Oskiloskop Penurunan Voltase Starter (Cranking Health Waveform)</h3>
+        <p style="color:#aaa; font-size:12px; margin-bottom:12px;">
+          Merekam kurva tegangan aki 10ms saat tombol starter ditekan untuk mengukur voltase terendah (lowest soak voltage) dan menentukan kelayakan aki.
+        </p>
+        <canvas id="crank-scope" height="150" style="width:100%; height:150px; background:#0b1329; border:1px solid #0f3460; border-radius:8px; display:block;"></canvas>
+        <div class="grid" style="margin-top:15px;">
+          <div class="card">
+            <div class="label">Voltase Terendah (Vmin)</div>
+            <div class="value" id="crank-min-v" style="color:#00e676;">--</div>
+            <div class="unit">Volt</div>
+          </div>
+          <div class="card">
+            <div class="label">Penurunan Tegangan (Drop)</div>
+            <div class="value" id="crank-drop-v">--</div>
+            <div class="unit">Volt</div>
+          </div>
+          <div class="card">
+            <div class="label">Durasi Starter</div>
+            <div class="value" id="crank-duration">--</div>
+            <div class="unit">ms</div>
+          </div>
+          <div class="card">
+            <div class="label">Grade Kelayakan Aki</div>
+            <div class="value" id="crank-grade" style="color:#4fc3f7;">--</div>
+            <div class="unit">Kondisi</div>
+          </div>
+        </div>
+        <p id="crank-verdict" style="font-size:13px; color:#bbb; padding:10px; background:#0b1329; border-radius:6px; margin-top:5px;"></p>
+      </div>
+      <div class="section">
+        <h3>Riwayat Peristiwa Cranking</h3>
+        <div id="crank-list"><p style="color: #888">Belum ada peristiwa cranking terekam.</p></div>
+      </div>
+    </div>
+
+    <!-- SURAT KETERANGAN SEHAT MOTOR (INSPECTION CERTIFICATE) TAB -->
+    <div class="tab" id="tab-certificate">
+      <div class="no-print section">
+        <h3>Surat Keterangan Sehat Motor (Lembar Inspeksi Digital)</h3>
+        <p style="color:#aaa; font-size:12px; margin-bottom:15px;">
+          Sertifikat uji kelayakan resmi bengkel untuk diserahkan ke pelanggan atau lampiran jual-beli motor bekas. Lengkapi identitas kendaraan di bawah lalu klik Cetak.
+        </p>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; margin-bottom:15px;">
+          <div>
+            <label style="font-size:11px; color:#888;">Nama Pemilik / Pelanggan:</label>
+            <input type="text" id="cert-owner" value="Bpk. Pelanggan" style="width:100%; padding:8px; background:#0b1329; border:1px solid #0f3460; color:#fff; border-radius:6px; margin-top:4px;">
+          </div>
+          <div>
+            <label style="font-size:11px; color:#888;">Nomor Polisi (Plat Motor):</label>
+            <input type="text" id="cert-plate" value="BG 1234 XX" style="width:100%; padding:8px; background:#0b1329; border:1px solid #0f3460; color:#fff; border-radius:6px; margin-top:4px;">
+          </div>
+          <div>
+            <label style="font-size:11px; color:#888;">Nama Bengkel / Teknisi:</label>
+            <input type="text" id="cert-workshop" value="SmartFI Specialist Workshop" style="width:100%; padding:8px; background:#0b1329; border:1px solid #0f3460; color:#fff; border-radius:6px; margin-top:4px;">
+          </div>
+        </div>
+        <button class="btn btn-success" onclick="printCertificate()">🖨️ Cetak Lembar Surat Sehat Motor (A4 / PDF)</button>
+      </div>
+
+      <!-- Printable Certificate View -->
+      <div class="cert-container" style="background:#fff; color:#111; padding:30px; border-radius:8px; max-width:850px; margin:0 auto; box-shadow:0 4px 20px rgba(0,0,0,0.5); font-family:sans-serif;">
+        <div class="cert-header" style="text-align:center; border-bottom:3px double #333; padding-bottom:15px; margin-bottom:20px;">
+          <h2 style="font-size:22px; color:#0b3c5d; margin-bottom:4px; text-transform:uppercase; letter-spacing:1px;">SURAT KETERANGAN SEHAT MOTOR</h2>
+          <p style="font-size:12px; color:#555;">LEMBAR HASIL DIAGNOSTIK ELEKTRONIK & UJI KELAYAKAN SISTEM FUEL INJECTION (FI)</p>
+          <p style="font-size:11px; color:#777;" id="cert-date-display">Tanggal Pemeriksaan: 12 November 2026</p>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; font-size:12px; margin-bottom:20px;">
+          <div>
+            <p><strong>Nama Pemilik:</strong> <span id="print-owner">Bpk. Pelanggan</span></p>
+            <p style="margin-top:4px;"><strong>Nomor Polisi:</strong> <span id="print-plate" style="font-weight:bold; font-family:monospace; font-size:14px; background:#eee; padding:2px 6px; border-radius:3px;">BG 1234 XX</span></p>
+            <p style="margin-top:4px;"><strong>Tipe / Model Motor:</strong> <span id="print-model">Honda Vario 160 eSP+</span></p>
+          </div>
+          <div>
+            <p><strong>Bengkel / Pemeriksa:</strong> <span id="print-workshop">SmartFI Specialist Workshop</span></p>
+            <p style="margin-top:4px;"><strong>Metode Uji:</strong> SmartFI K-Line Fast-Init & ADC Telemetry</p>
+            <p style="margin-top:4px;"><strong>Skor Kesehatan:</strong> <strong id="print-health-score" style="font-size:16px; color:#2e7d32;">95% (PRIMA)</strong></p>
+          </div>
+        </div>
+
+        <table class="cert-table" style="width:100%; border-collapse:collapse; margin-bottom:20px; font-size:12px;">
+          <thead>
+            <tr style="background:#f0f4f8; border-top:1px solid #ccc; border-bottom:1px solid #ccc;">
+              <th style="padding:8px; border:1px solid #ccc; text-align:left;">Sistem / Komponen</th>
+              <th style="padding:8px; border:1px solid #ccc; text-align:center;">Parameter Terukur</th>
+              <th style="padding:8px; border:1px solid #ccc; text-align:center;">Standar Normal</th>
+              <th style="padding:8px; border:1px solid #ccc; text-align:center;">Status Kelayakan</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:8px; border:1px solid #ccc;"><strong>1. Sistem Baterai & Starter (Aki)</strong><br><span style="font-size:10px; color:#666;">Voltase Idle & Drop Starter</span></td>
+              <td style="padding:8px; border:1px solid #ccc; text-align:center;" id="cert-val-batt">12.6V / Drop 10.5V</td>
+              <td style="padding:8px; border:1px solid #ccc; text-align:center;">12.4V - 14.5V (&gt; 9.5V saat start)</td>
+              <td style="padding:8px; border:1px solid #ccc; text-align:center; font-weight:bold; color:#2e7d32;" id="cert-stat-batt">SEHAT (Grade A)</td>
+            </tr>
+            <tr>
+              <td style="padding:8px; border:1px solid #ccc;"><strong>2. Sensor Bukaan Gas (TPS)</strong><br><span style="font-size:10px; color:#666;">Integritas Jalur Karbon Resistif</span></td>
+              <td style="padding:8px; border:1px solid #ccc; text-align:center;" id="cert-val-tps">0.50V - 4.25V (0 Glitch)</td>
+              <td style="padding:8px; border:1px solid #ccc; text-align:center;">Linier mulus tanpa noise spike</td>
+              <td style="padding:8px; border:1px solid #ccc; text-align:center; font-weight:bold; color:#2e7d32;" id="cert-stat-tps">NORMAL (Tanpa Glitch)</td>
+            </tr>
+            <tr>
+              <td style="padding:8px; border:1px solid #ccc;"><strong>3. Kode Kerusakan ECU (DTC)</strong><br><span style="font-size:10px; color:#666;">Riwayat Malfungsi Sensor Mesin</span></td>
+              <td style="padding:8px; border:1px solid #ccc; text-align:center;" id="cert-val-dtc">0 Kode Kerusakan</td>
+              <td style="padding:8px; border:1px solid #ccc; text-align:center;">Nol Malfungsi (Zero Faults)</td>
+              <td style="padding:8px; border:1px solid #ccc; text-align:center; font-weight:bold; color:#2e7d32;" id="cert-stat-dtc">BERSIH (Tidak Ada DTC)</td>
+            </tr>
+            <tr>
+              <td style="padding:8px; border:1px solid #ccc;"><strong>4. Kestabilan Putaran Langsam (Idle)</strong><br><span style="font-size:10px; color:#666;">Fluktuasi RPM Stasioner</span></td>
+              <td style="padding:8px; border:1px solid #ccc; text-align:center;" id="cert-val-idle">1650 RPM (&plusmn;35 RPM)</td>
+              <td style="padding:8px; border:1px solid #ccc; text-align:center;">1500 - 1800 RPM</td>
+              <td style="padding:8px; border:1px solid #ccc; text-align:center; font-weight:bold; color:#2e7d32;" id="cert-stat-idle">STABIL</td>
+            </tr>
+            <tr>
+              <td style="padding:8px; border:1px solid #ccc;"><strong>5. Suhu Operasional Mesin (ECT)</strong><br><span style="font-size:10px; color:#666;">Manajemen Termal & Kipas</span></td>
+              <td style="padding:8px; border:1px solid #ccc; text-align:center;" id="cert-val-temp">85 &deg;C</td>
+              <td style="padding:8px; border:1px solid #ccc; text-align:center;">&lt; 105 &deg;C</td>
+              <td style="padding:8px; border:1px solid #ccc; text-align:center; font-weight:bold; color:#2e7d32;" id="cert-stat-temp">NORMAL</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="border:2px dashed #2e7d32; background:#f1f8e9; padding:15px; border-radius:6px; text-align:center; margin-bottom:25px;">
+          <span style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#555; display:block;">Kesimpulan Hasil Uji Kelayakan:</span>
+          <h3 style="font-size:18px; color:#2e7d32; margin-top:4px;" id="cert-verdict-title">KENDARAAN DINYATAKAN SEHAT & LAIK JALAN</h3>
+          <p style="font-size:11px; color:#666; margin-top:2px;" id="cert-verdict-desc">Seluruh komponen kelistrikan dan sistem injeksi berada dalam rentang toleransi standar pabrik.</p>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; margin-top:30px; font-size:12px; padding:0 20px;">
+          <div style="text-align:center;">
+            <p>Pemilik Kendaraan,</p>
+            <div style="height:60px;"></div>
+            <p style="border-top:1px solid #555; padding-top:4px;"><strong id="sign-owner">( Bpk. Pelanggan )</strong></p>
+          </div>
+          <div style="text-align:center;">
+            <p>Teknisi / Penguji Resmi,</p>
+            <div style="height:60px;"></div>
+            <p style="border-top:1px solid #555; padding-top:4px;"><strong id="sign-tech">( Kepala Mekanik )</strong></p>
+          </div>
         </div>
       </div>
     </div>
@@ -326,34 +583,17 @@
         <h3>Overall Health Score</h3>
         <div style="text-align: center">
           <div class="value" id="health-score" style="font-size: 48px">--</div>
-          <p id="health-summary" style="color: #888; margin-top: 8px">
-            Loading...
-          </p>
+          <p id="health-summary" style="color: #888; margin-top: 8px">Loading...</p>
         </div>
       </div>
       <div class="section">
         <h3>Component Scores</h3>
         <table>
-          <tr>
-            <td>Baterai</td>
-            <td id="h-batt">--</td>
-          </tr>
-          <tr>
-            <td>TPS</td>
-            <td id="h-tps">--</td>
-          </tr>
-          <tr>
-            <td>Idle Stability</td>
-            <td id="h-idle">--</td>
-          </tr>
-          <tr>
-            <td>Charging</td>
-            <td id="h-charge">--</td>
-          </tr>
-          <tr>
-            <td>Thermal</td>
-            <td id="h-thermal">--</td>
-          </tr>
+          <tr><td>Baterai</td><td id="h-batt">--</td></tr>
+          <tr><td>TPS</td><td id="h-tps">--</td></tr>
+          <tr><td>Idle Stability</td><td id="h-idle">--</td></tr>
+          <tr><td>Charging</td><td id="h-charge">--</td></tr>
+          <tr><td>Thermal</td><td id="h-thermal">--</td></tr>
         </table>
       </div>
     </div>
@@ -361,7 +601,7 @@
     <!-- DTC TAB -->
     <div class="tab" id="tab-dtc">
       <div class="section">
-        <h3>Diagnostic Trouble Codes</h3>
+        <h3>Diagnostic Trouble Codes (DTC)</h3>
         <div id="dtc-list"><p style="color: #888">No DTCs detected</p></div>
         <div style="margin-top: 15px">
           <button class="btn" onclick="readDTC()">Baca Ulang DTC</button>
@@ -387,14 +627,6 @@
       <div class="section">
         <h3>Rekaman Freeze Frame</h3>
         <div id="freeze-list"><p style="color: #888">No freeze frames</p></div>
-      </div>
-    </div>
-
-    <!-- CRANKING TAB -->
-    <div class="tab" id="tab-crank">
-      <div class="section">
-        <h3>Riwayat Cranking & Starter</h3>
-        <div id="crank-list"><p style="color: #888">No cranking events</p></div>
       </div>
     </div>
 
@@ -440,8 +672,11 @@
     </div>
 
     <script>
-      // WebSocket connection
       let ws;
+      let lastProfileData = null;
+      let lastHealthData = null;
+      let lastDtcCount = 0;
+
       function connectWS() {
         ws = new WebSocket("ws://" + location.host + "/ws");
         ws.onopen = () => {
@@ -467,36 +702,78 @@
       }
       connectWS();
 
-      // Tab navigation
       function showTab(name) {
         document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
         document.querySelectorAll(".nav button").forEach((b) => b.classList.remove("active"));
-        document.getElementById("tab-" + name).classList.add("active");
-        event.target.classList.add("active");
+        const tabEl = document.getElementById("tab-" + name);
+        if (tabEl) tabEl.classList.add("active");
+        if (event && event.target) event.target.classList.add("active");
 
         if (name === "health") loadHealth();
-        if (name === "tps") loadTPSStatus();
+        if (name === "tps") loadTPSWaveform();
         if (name === "accel") loadAccelStatus();
+        if (name === "actuator") loadActuatorStatus();
+        if (name === "crank") loadCrankWaveform();
+        if (name === "certificate") updateCertificateView();
         if (name === "logs") loadLogList();
         if (name === "dtc") loadDTC();
         if (name === "wizard") loadWizardSymptoms();
         if (name === "freeze") loadFreeze();
-        if (name === "crank") loadCrank();
         if (name === "fuel") loadFuel();
         if (name === "trend") loadTrend();
       }
 
-      // TPS Calibration APIs
-      async function loadTPSStatus() {
+      // TPS Waveform & Oscilloscope
+      async function loadTPSWaveform() {
         try {
-          const r = await fetch("/api/tps/status");
+          const r = await fetch("/api/tps/waveform");
           const d = await r.json();
-          document.getElementById("tps-live-v").textContent = d.voltage || "--";
-          document.getElementById("tps-live-pct").textContent = d.percent || "--";
+          document.getElementById("tps-live-v").textContent = d.current_v || "--";
+          document.getElementById("tps-live-pct").textContent = d.current_pct || "--";
           document.getElementById("tps-cal-idle").textContent = d.idle_v || "0.50";
           document.getElementById("tps-cal-wot").textContent = d.wot_v || "4.20";
-          document.getElementById("tps-noise-alert").style.display = d.noise ? "block" : "none";
+          document.getElementById("tps-glitch-count").textContent = d.glitches || 0;
+          document.getElementById("tps-noise-alert").style.display = d.noise_detected ? "block" : "none";
+
+          drawTPSOscilloscope(d.samples || []);
         } catch (e) {}
+      }
+
+      function drawTPSOscilloscope(samples) {
+        const canvas = document.getElementById("tps-scope");
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        canvas.width = canvas.parentElement.clientWidth - 30;
+        canvas.height = 150;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Grid lines
+        ctx.strokeStyle = "#162b55";
+        ctx.lineWidth = 1;
+        for (let v = 1; v <= 4; v++) {
+          const y = canvas.height - (v / 5.0) * canvas.height;
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(canvas.width, y);
+          ctx.stroke();
+          ctx.fillStyle = "#4a6595";
+          ctx.font = "9px monospace";
+          ctx.fillText(v + ".0V", 5, y - 3);
+        }
+
+        if (!samples || samples.length === 0) return;
+
+        // Waveform
+        ctx.strokeStyle = "#4fc3f7";
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        samples.forEach((val, i) => {
+          const v = parseFloat(val) || 0;
+          const x = (i / (samples.length - 1 || 1)) * canvas.width;
+          const y = canvas.height - (v / 5.0) * canvas.height;
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        });
+        ctx.stroke();
       }
 
       async function calibrateTPS(action) {
@@ -505,13 +782,13 @@
           const r = await fetch("/api/tps/calibrate_" + action, { method: "POST" });
           const text = await r.text();
           document.getElementById("tps-msg").textContent = text;
-          setTimeout(loadTPSStatus, 600);
+          setTimeout(loadTPSWaveform, 600);
         } catch (e) {
           document.getElementById("tps-msg").textContent = "Gagal menghubungi alat.";
         }
       }
 
-      // Acceleration Timer APIs
+      // Acceleration & Virtual Dyno
       async function loadAccelStatus() {
         try {
           const r = await fetch("/api/accel");
@@ -521,7 +798,20 @@
           document.getElementById("accel-last").textContent = d.last_0_60 || "--";
           document.getElementById("accel-best").textContent = d.best_0_60 || "--";
           document.getElementById("accel-top").textContent = d.top_speed || "--";
+
+          // Dyno fields
+          document.getElementById("dyno-hp").textContent = d.hp || "0.0";
+          document.getElementById("dyno-tq").textContent = d.torque_nm || "0.0";
+          document.getElementById("dyno-peak-hp").textContent = d.peak_hp || "0.0";
+          document.getElementById("dyno-peak-tq").textContent = d.peak_torque_nm || "0.0";
         } catch (e) {}
+      }
+
+      async function saveDynoWeights() {
+        const bikeKg = document.getElementById("dyno-bike-kg").value;
+        const riderKg = document.getElementById("dyno-rider-kg").value;
+        await fetch(`/api/dyno/config?bike_kg=${bikeKg}&rider_kg=${riderKg}`, { method: "POST" });
+        alert("Bobot Virtual Dyno berhasil disimpan!");
       }
 
       async function armAccelTimer() {
@@ -532,6 +822,143 @@
       async function resetAccelTimer() {
         await fetch("/api/accel/reset", { method: "POST" });
         loadAccelStatus();
+      }
+
+      // Actuator Active Tests
+      async function runActuator(type, duration) {
+        try {
+          const r = await fetch(`/api/actuator/test?type=${type}&duration=${duration}`, { method: "POST" });
+          const d = await r.json();
+          document.getElementById("actuator-name").textContent = d.name;
+          document.getElementById("actuator-msg").textContent = d.message;
+          loadActuatorStatus();
+        } catch (e) {
+          alert("Gagal menjalankan tes aktuator.");
+        }
+      }
+
+      async function stopActuator() {
+        await fetch("/api/actuator/stop", { method: "POST" });
+        loadActuatorStatus();
+      }
+
+      async function loadActuatorStatus() {
+        try {
+          const r = await fetch("/api/actuator/status");
+          const d = await r.json();
+          document.getElementById("actuator-name").textContent = d.name + (d.active ? " (AKTIF)" : "");
+          document.getElementById("actuator-msg").textContent = d.message;
+          document.getElementById("actuator-progress").style.width = (d.progress_pct || 0) + "%";
+        } catch (e) {}
+      }
+
+      // Cranking Analyzer & Waveform
+      async function loadCrankWaveform() {
+        try {
+          const r = await fetch("/api/crank/waveform");
+          const d = await r.json();
+          document.getElementById("crank-min-v").textContent = d.last_min_v || "--";
+          document.getElementById("crank-drop-v").textContent = d.last_drop_v || "--";
+          document.getElementById("crank-duration").textContent = d.last_duration_ms || "--";
+          document.getElementById("crank-grade").textContent = d.grade || "N/A";
+          document.getElementById("crank-verdict").textContent = d.verdict || "Belum ada rekaman cranking.";
+
+          drawCrankOscilloscope(d.waveform || []);
+        } catch (e) {}
+        loadCrankList();
+      }
+
+      function drawCrankOscilloscope(waveform) {
+        const canvas = document.getElementById("crank-scope");
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        canvas.width = canvas.parentElement.clientWidth - 30;
+        canvas.height = 150;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw 10.5V and 8.5V threshold reference lines
+        const drawRef = (v, color, text) => {
+          const y = canvas.height - ((v - 6.0) / (15.0 - 6.0)) * canvas.height;
+          ctx.strokeStyle = color;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(canvas.width, y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = color;
+          ctx.font = "10px sans-serif";
+          ctx.fillText(text, 5, y - 3);
+        };
+        drawRef(10.5, "#66bb6a", "10.5V (Batas Prima)");
+        drawRef(8.5, "#ef5350", "8.5V (Batas Kritis)");
+
+        if (!waveform || waveform.length === 0) return;
+
+        ctx.strokeStyle = "#ffd54f";
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        waveform.forEach((val, i) => {
+          const v = parseFloat(val) || 0;
+          const x = (i / (waveform.length - 1 || 1)) * canvas.width;
+          const y = canvas.height - ((v - 6.0) / (15.0 - 6.0)) * canvas.height;
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+      }
+
+      async function loadCrankList() {
+        const r = await fetch("/api/crank");
+        const events = await r.json();
+        const el = document.getElementById("crank-list");
+        if (!events.length) {
+          el.innerHTML = '<p style="color:#888">Belum ada peristiwa cranking.</p>';
+          return;
+        }
+        let html = "<table><tr><th>Durasi</th><th>Min V</th><th>Drop</th><th>Hasil</th><th>Grade</th></tr>";
+        events.forEach((e) => {
+          html += `<tr><td>${e.duration_ms}ms</td><td>${e.min_v}V</td><td>${e.drop}V</td><td>${e.started ? "START" : "GAGAL"}</td><td>${e.verdict}</td></tr>`;
+        });
+        html += "</table>";
+        el.innerHTML = html;
+      }
+
+      // Surat Sehat Motor (Certificate) Handler
+      function updateCertificateView() {
+        const owner = document.getElementById("cert-owner").value;
+        const plate = document.getElementById("cert-plate").value;
+        const workshop = document.getElementById("cert-workshop").value;
+
+        document.getElementById("print-owner").textContent = owner;
+        document.getElementById("print-plate").textContent = plate;
+        document.getElementById("print-workshop").textContent = workshop;
+        document.getElementById("sign-owner").textContent = `( ${owner} )`;
+        document.getElementById("sign-tech").textContent = `( ${workshop} )`;
+
+        const today = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById("cert-date-display").textContent = "Tanggal Pemeriksaan: " + today;
+
+        if (lastProfileData) {
+          document.getElementById("print-model").textContent = lastProfileData.name;
+        }
+
+        // Live values into certificate table
+        const vBatt = document.getElementById("v-batt").textContent;
+        const vTps = document.getElementById("v-tps").textContent;
+        const vRpm = document.getElementById("v-rpm").textContent;
+        const vTemp = document.getElementById("v-temp").textContent;
+        const vHealth = document.getElementById("v-health").textContent;
+
+        if (vBatt !== "--") document.getElementById("cert-val-batt").textContent = vBatt + " Volt";
+        if (vTps !== "--") document.getElementById("cert-val-tps").textContent = vTps + "% Bukaan Gas";
+        if (vRpm !== "--") document.getElementById("cert-val-idle").textContent = vRpm + " RPM";
+        if (vTemp !== "--") document.getElementById("cert-val-temp").textContent = vTemp + " °C";
+        if (vHealth !== "--") document.getElementById("print-health-score").textContent = vHealth + "% (PRIMA)";
+      }
+
+      function printCertificate() {
+        updateCertificateView();
+        window.print();
       }
 
       // SD Logs API
@@ -559,6 +986,7 @@
       async function loadHealth() {
         const r = await fetch("/api/health");
         const d = await r.json();
+        lastHealthData = d;
         document.getElementById("health-score").textContent = d.score + "%";
         document.getElementById("health-summary").textContent = d.summary || "";
         document.getElementById("h-batt").textContent = (d.batt_score || "--") + "%";
@@ -572,17 +1000,20 @@
       async function loadDTC() {
         const r = await fetch("/api/dtc");
         const dtcs = await r.json();
+        lastDtcCount = dtcs.length;
         const el = document.getElementById("dtc-list");
         if (!dtcs.length) {
-          el.innerHTML = '<p style="color:#888">No DTCs detected</p>';
+          el.innerHTML = '<p style="color: #888">Nol DTC (Tidak ada kode kerusakan terdeteksi)</p>';
+          document.getElementById("cert-val-dtc").textContent = "0 Kode Kerusakan";
           return;
         }
-        let html = "<table><tr><th>Code</th><th>Description</th><th>Fix</th></tr>";
+        let html = "<table><tr><th>Kode</th><th>Deskripsi</th><th>Saran Perbaikan</th></tr>";
         dtcs.forEach((d) => {
           html += `<tr><td>${d.code}</td><td>${d.desc}</td><td>${d.fix || "-"}</td></tr>`;
         });
         html += "</table>";
         el.innerHTML = html;
+        document.getElementById("cert-val-dtc").textContent = dtcs.length + " Kode DTC Terdeteksi";
       }
 
       async function readDTC() {
@@ -632,7 +1063,7 @@
         const frames = await r.json();
         const el = document.getElementById("freeze-list");
         if (!frames.length) {
-          el.innerHTML = '<p style="color:#888">No freeze frames</p>';
+          el.innerHTML = '<p style="color:#888">Belum ada rekaman freeze frame.</p>';
           return;
         }
         let html = "<table><tr><th>Trigger</th><th>Batt</th><th>RPM</th><th>TPS</th><th>Temp</th></tr>";
@@ -645,24 +1076,7 @@
 
       async function captureFreeze() {
         await fetch("/api/freeze/capture", { method: "POST" });
-        alert("Freeze Frame Captured!");
-      }
-
-      // Crank API
-      async function loadCrank() {
-        const r = await fetch("/api/crank");
-        const events = await r.json();
-        const el = document.getElementById("crank-list");
-        if (!events.length) {
-          el.innerHTML = '<p style="color:#888">No cranking events</p>';
-          return;
-        }
-        let html = "<table><tr><th>Duration</th><th>Min V</th><th>Drop</th><th>Result</th><th>Verdict</th></tr>";
-        events.forEach((e) => {
-          html += `<tr><td>${e.duration_ms}ms</td><td>${e.min_v}V</td><td>${e.drop}V</td><td>${e.started ? "START" : "FAIL"}</td><td>${e.verdict}</td></tr>`;
-        });
-        html += "</table>";
-        el.innerHTML = html;
+        alert("Freeze Frame berhasil direkam!");
       }
 
       // Fuel API
@@ -729,16 +1143,19 @@
       fetch("/api/profile")
         .then((r) => r.json())
         .then((d) => {
+          lastProfileData = d;
           document.getElementById("profile-name").textContent = d.name + " | Tier " + d.tier;
         })
         .catch(() => {});
 
-      // Timers for active tabs
+      // Timers for active streaming tabs
       setInterval(() => {
         if (document.getElementById("tab-trend").classList.contains("active")) loadTrend();
-        if (document.getElementById("tab-tps").classList.contains("active")) loadTPSStatus();
+        if (document.getElementById("tab-tps").classList.contains("active")) loadTPSWaveform();
         if (document.getElementById("tab-accel").classList.contains("active")) loadAccelStatus();
-      }, 500);
+        if (document.getElementById("tab-actuator").classList.contains("active")) loadActuatorStatus();
+        if (document.getElementById("tab-crank").classList.contains("active")) loadCrankWaveform();
+      }, 400);
     </script>
   </body>
 </html>

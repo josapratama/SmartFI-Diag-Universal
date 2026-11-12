@@ -53,6 +53,7 @@
 #include "services/relay_service.h"
 #include "services/module_status.h"
 #include "services/acceleration_timer.h"
+#include "services/actuator_service.h"
 
 // ==========================================
 // SYSTEM OBJECTS
@@ -380,6 +381,10 @@ void setup() {
     // Save selected profile to NVS for next boot
     PreferencesService::getInstance().saveLastProfile(selectedProfile);
 
+    // Actuator Service & Virtual Dyno
+    ActuatorService::getInstance().init(&relayService, &buzzer);
+    AccelerationTimer::getInstance().init();
+
     currentState = STATE_IDLE;
     Serial.println("=== System Ready ===");
 }
@@ -467,6 +472,11 @@ void updateServices() {
 
     // O2 sensor (optional)
     o2Service.update();
+
+    // Actuator Active Test & Virtual Dyno
+    ActuatorService::getInstance().update(rpmService.getRPM());
+    float vSpeed = gpsService.isAvailable() ? gpsService.getSpeed() : (rpmService.getRPM() * 0.0095f);
+    AccelerationTimer::getInstance().update(vSpeed, tpsService.getPercent(), rpmService.getRPM());
 
     // Maintenance (track running hours)
     maintenanceService.update(rpmService.getRPM());
@@ -752,6 +762,14 @@ void handleWebRequests() {
         serializeJson(tpsDoc, tpsJson);
         webServer.setTPSStatus(tpsJson);
         lastTPSWebUpdate = millis();
+    }
+
+    // Periodic Waveform updates (TPS Oscilloscope & Cranking) every 200ms
+    static uint32_t lastWaveformUpdate = 0;
+    if (millis() - lastWaveformUpdate >= 200) {
+        webServer.setTpsWaveform(tpsService.getWaveformJson());
+        webServer.setCrankWaveform(crankAnalyzer.getWaveformJson());
+        lastWaveformUpdate = millis();
     }
 }
 

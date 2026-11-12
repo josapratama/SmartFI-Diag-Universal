@@ -121,9 +121,9 @@ public:
 
     // BLECharacteristicCallbacks
     void onWrite(BLECharacteristic* pCharacteristic) override {
-        std::string value = pCharacteristic->getValue();
-        if (value.length() > 0) {
-            rxBuffer = String(value.c_str());
+        String valStr = pCharacteristic->getValue();
+        if (valStr.length() > 0) {
+            rxBuffer = valStr;
         }
     }
 

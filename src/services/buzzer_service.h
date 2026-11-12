@@ -16,7 +16,9 @@ enum BuzzerPattern {
     BUZZ_TRIPLE_BEEP,      // 3 short beeps (DTC detected)
     BUZZ_LONG_BEEP,        // 1 long beep (critical)
     BUZZ_SOS,              // SOS pattern (overheat emergency)
-    BUZZ_STARTUP_OK        // Rising tone (system ready)
+    BUZZ_STARTUP_OK,       // Rising tone (system ready)
+    BUZZ_CONFIRM = BUZZ_SINGLE_BEEP,
+    BUZZ_SHORT_BEEP = BUZZ_SINGLE_BEEP
 };
 
 class BuzzerService {

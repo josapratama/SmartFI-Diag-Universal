@@ -14,7 +14,8 @@ enum ModuleState {
     MOD_DISABLED,       // Not enabled in config
     MOD_NOT_DETECTED,   // Enabled but hardware not found
     MOD_CONNECTED,      // Working normally
-    MOD_ERROR           // Was connected but lost connection
+    MOD_ERROR,          // Was connected but lost connection
+    MOD_WARNING         // Warning or fallback state
 };
 
 struct ModuleInfo {

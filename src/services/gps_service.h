@@ -82,6 +82,7 @@ public:
     GPSData getData() const { return data; }
     float getSpeed() const { return data.valid ? data.speed_kmh : 0; }
     bool hasFix() const { return data.valid && data.satellites >= 3; }
+    bool isFixed() const { return hasFix(); }
 
 private:
     bool available;

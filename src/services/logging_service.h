@@ -115,6 +115,18 @@ public:
         return fileList;
     }
 
+    String getLogFilesJson() {
+        std::vector<String> files = listLogFiles();
+        StaticJsonDocument<1024> doc;
+        JsonArray arr = doc.to<JsonArray>();
+        for (const auto& f : files) {
+            arr.add(f);
+        }
+        String output;
+        serializeJson(doc, output);
+        return output;
+    }
+
 private:
     LoggingService() : _initialized(false), _csPin(-1), _currentFileName("") {}
     bool _initialized;

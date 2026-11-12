@@ -1,0 +1,37 @@
+{
+  "id": 116,
+  "name": "Honda PCX 160 eSP+ (2021-2026)",
+  "brand": "honda",
+  "family": "scooter",
+  "model": "pcx_160",
+  "parent_profile": "family_honda_scooter",
+  "tier": 4,
+  "capabilities": { 
+    "has_ecu_protocol": true, 
+    "has_fuel_pump_monitor": true,
+    "has_tps": true,
+    "has_ect": true
+  },
+  "thresholds": {
+    "rpm_idle": [1550, 1750],
+    "tps_v": [0.47, 4.30],
+    "temp_v_overheat": 3.6,
+    "batt_v_idle": [13.2, 14.8]
+  },
+  "startup_thresholds": { 
+    "batt_crank_min": 10.2, 
+    "crank_duration_max": 2500 
+  },
+  "brand_extra": {
+    "chassis_code": "K1ZG",
+    "engine_type": "eSP+ 156.9cc 4-Valve SOHC Liquid-Cooled",
+    "power_hp": 16.0,
+    "torque_nm": 14.7,
+    "acg_starter": true,
+    "iss_equipped": true,
+    "hstc_traction_control": true,
+    "ecu_baud_rate": 10400,
+    "protocol": "HONDA_KLINE_HDS"
+  }
+}
+
